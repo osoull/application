@@ -31,8 +31,7 @@ const ApplicationForm = () => {
     yearsOfExperience: "",
     currentCompany: "",
     currentPosition: "",
-    education: "",
-    skills: "",
+    specialMotivation: "", // Nouveau champ
   });
 
   const handleInputChange = (
@@ -84,8 +83,7 @@ const ApplicationForm = () => {
       yearsOfExperience: "",
       currentCompany: "",
       currentPosition: "",
-      education: "",
-      skills: "",
+      specialMotivation: "",
     });
     setDate(undefined);
   };
@@ -100,7 +98,7 @@ const ApplicationForm = () => {
           <div className="flex justify-center items-center">
             <img 
               src="https://haovnjkyayiqenjpvlfb.supabase.co/storage/v1/object/public/platform-assets/logo.svg" 
-              alt="Rasin Investment Company" 
+              alt="Company Logo" 
               className="h-12" 
             />
           </div>
@@ -268,40 +266,15 @@ const ApplicationForm = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="education">Education / التعليم</Label>
+            <Label htmlFor="specialMotivation">Special Motivation for this Position / الدافع الخاص لهذا المنصب</Label>
             <Textarea
-              id="education"
-              name="education"
-              value={formData.education}
+              id="specialMotivation"
+              name="specialMotivation"
+              value={formData.specialMotivation}
               onChange={handleInputChange}
-              placeholder="Your educational background / خلفيتك التعليمية"
+              placeholder="Please explain your special motivation for this position / يرجى توضيح دافعك الخاص لهذا المنصب"
               className="resize-none"
-              rows={3}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="skills">Skills / المهارات</Label>
-            <Textarea
-              id="skills"
-              name="skills"
-              value={formData.skills}
-              onChange={handleInputChange}
-              placeholder="List your relevant skills / اذكر مهاراتك ذات الصلة"
-              className="resize-none"
-              rows={3}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="linkedin">LinkedIn Profile / حساب لينكد إن</Label>
-            <Input
-              id="linkedin"
-              name="linkedin"
-              type="url"
-              placeholder="https://linkedin.com/in/your-profile"
-              value={formData.linkedin}
-              onChange={handleInputChange}
+              rows={4}
             />
           </div>
 
