@@ -83,7 +83,7 @@ const PersonalInfoForm = ({ formData, handleInputChange }: PersonalInfoFormProps
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="linkedin">LinkedIn Profile <span className="text-red-500">*</span></Label>
           <Input
@@ -94,17 +94,6 @@ const PersonalInfoForm = ({ formData, handleInputChange }: PersonalInfoFormProps
             value={formData.linkedin}
             onChange={handleInputChange}
             placeholder="https://linkedin.com/in/username"
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="github">GitHub Profile</Label>
-          <Input
-            id="github"
-            name="github"
-            type="url"
-            value={formData.github}
-            onChange={handleInputChange}
-            placeholder="https://github.com/username"
           />
         </div>
         <div className="space-y-2">
