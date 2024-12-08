@@ -7,6 +7,9 @@ import EducationForm from "./forms/EducationForm";
 import ProfessionalInfoForm from "./forms/ProfessionalInfoForm";
 import DocumentsForm from "./forms/DocumentsForm";
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
+
+type JobInsert = Database["public"]["Tables"]["jobs"]["Insert"];
 
 const ApplicationForm = () => {
   const { toast } = useToast();
@@ -84,31 +87,35 @@ const ApplicationForm = () => {
         }
 
         // Insert job application into the database
-        const { error: insertError } = await supabase.from('jobs').insert({
+        const jobData: JobInsert = {
           first_name: formData.firstName,
           first_name_ar: formData.firstNameAr,
           last_name: formData.lastName,
           last_name_ar: formData.lastNameAr,
           email: formData.email,
           phone: formData.phone,
-          linkedin: formData.linkedin,
-          github: formData.github,
-          portfolio_url: formData.portfolioUrl,
+          linkedin: formData.linkedin || null,
+          github: formData.github || null,
+          portfolio_url: formData.portfolioUrl || null,
           cover_letter_url: coverLetterPath,
           resume_url: resumePath,
-          expected_salary: formData.expectedSalary,
-          current_salary: formData.currentSalary,
+          expected_salary: Number(formData.expectedSalary),
+          current_salary: Number(formData.currentSalary),
           notice_period: formData.noticePeriod,
           years_of_experience: formData.yearsOfExperience,
           current_company: formData.currentCompany,
           current_position: formData.currentPosition,
           education_level: formData.educationLevel,
-          university: formData.university,
-          major: formData.major,
-          graduation_year: formData.graduationYear,
+          university: formData.university || null,
+          major: formData.major || null,
+          graduation_year: formData.graduationYear ? Number(formData.graduationYear) : null,
           special_motivation: formData.specialMotivation,
-          availability_date: date,
-        });
+          availability_date: date?.toISOString() || new Date().toISOString(),
+        };
+
+        const { error: insertError } = await supabase
+          .from('jobs')
+          .insert(jobData);
 
         if (insertError) {
           throw insertError;

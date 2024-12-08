@@ -9,7 +9,96 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      jobs: {
+        Row: {
+          availability_date: string
+          cover_letter_url: string | null
+          created_at: string | null
+          current_company: string
+          current_position: string
+          current_salary: number
+          education_level: string
+          email: string
+          expected_salary: number
+          first_name: string
+          first_name_ar: string
+          github: string | null
+          graduation_year: number | null
+          id: string
+          languages: string[] | null
+          last_name: string
+          last_name_ar: string
+          linkedin: string | null
+          major: string | null
+          notice_period: string
+          phone: string
+          portfolio_url: string | null
+          resume_url: string | null
+          skills: string[] | null
+          special_motivation: string
+          university: string | null
+          years_of_experience: string
+        }
+        Insert: {
+          availability_date: string
+          cover_letter_url?: string | null
+          created_at?: string | null
+          current_company: string
+          current_position: string
+          current_salary: number
+          education_level: string
+          email: string
+          expected_salary: number
+          first_name: string
+          first_name_ar: string
+          github?: string | null
+          graduation_year?: number | null
+          id?: string
+          languages?: string[] | null
+          last_name: string
+          last_name_ar: string
+          linkedin?: string | null
+          major?: string | null
+          notice_period: string
+          phone: string
+          portfolio_url?: string | null
+          resume_url?: string | null
+          skills?: string[] | null
+          special_motivation: string
+          university?: string | null
+          years_of_experience: string
+        }
+        Update: {
+          availability_date?: string
+          cover_letter_url?: string | null
+          created_at?: string | null
+          current_company?: string
+          current_position?: string
+          current_salary?: number
+          education_level?: string
+          email?: string
+          expected_salary?: number
+          first_name?: string
+          first_name_ar?: string
+          github?: string | null
+          graduation_year?: number | null
+          id?: string
+          languages?: string[] | null
+          last_name?: string
+          last_name_ar?: string
+          linkedin?: string | null
+          major?: string | null
+          notice_period?: string
+          phone?: string
+          portfolio_url?: string | null
+          resume_url?: string | null
+          skills?: string[] | null
+          special_motivation?: string
+          university?: string | null
+          years_of_experience?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
