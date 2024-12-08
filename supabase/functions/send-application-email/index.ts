@@ -17,7 +17,7 @@ interface ApplicationData {
   email: string;
   phone: string;
   linkedin: string;
-  portfolioUrl: string;
+  portfolioUrl?: string;
   coverLetterUrl: string;
   resumeUrl: string;
   expectedSalary: string;
@@ -54,27 +54,27 @@ const handler = async (req: Request): Promise<Response> => {
     const applicationData: ApplicationData = await req.json();
     console.log("Received application data:", applicationData);
 
-    // Prepare email content
+    // Prepare email content with both English and Arabic
     const emailContent = `
-      <h2>New Job Application Received</h2>
+      <h2>New Job Application Received / تم استلام طلب وظيفة جديد</h2>
       <p>A new job application has been submitted with the following details:</p>
       <ul>
-        <li>Name: ${applicationData.firstName} ${applicationData.lastName} / ${applicationData.firstNameAr} ${applicationData.lastNameAr}</li>
-        <li>Email: ${applicationData.email}</li>
-        <li>Phone: ${applicationData.phone}</li>
+        <li>Name / الاسم: ${applicationData.firstName} ${applicationData.lastName} / ${applicationData.firstNameAr} ${applicationData.lastNameAr}</li>
+        <li>Email / البريد الإلكتروني: ${applicationData.email}</li>
+        <li>Phone / رقم الهاتف: ${applicationData.phone}</li>
         <li>LinkedIn: ${applicationData.linkedin}</li>
-        <li>Current Position: ${applicationData.currentPosition}</li>
-        <li>Current Company: ${applicationData.currentCompany}</li>
-        <li>Years of Experience: ${applicationData.yearsOfExperience}</li>
-        <li>Education: ${applicationData.educationLevel} in ${applicationData.major}</li>
-        <li>University: ${applicationData.university}</li>
-        <li>Graduation Year: ${applicationData.graduationYear}</li>
-        <li>Expected Salary: ${applicationData.expectedSalary} SAR</li>
-        <li>Notice Period: ${applicationData.noticePeriod}</li>
+        <li>Current Position / المنصب الحالي: ${applicationData.currentPosition}</li>
+        <li>Current Company / الشركة الحالية: ${applicationData.currentCompany}</li>
+        <li>Years of Experience / سنوات الخبرة: ${applicationData.yearsOfExperience}</li>
+        <li>Education / التعليم: ${applicationData.educationLevel} in ${applicationData.major}</li>
+        <li>University / الجامعة: ${applicationData.university}</li>
+        <li>Graduation Year / سنة التخرج: ${applicationData.graduationYear}</li>
+        <li>Expected Salary / الراتب المتوقع: ${applicationData.expectedSalary} SAR</li>
+        <li>Notice Period / فترة الإشعار: ${applicationData.noticePeriod}</li>
       </ul>
-      <h3>Special Motivation:</h3>
+      <h3>Special Motivation / الدافع الخاص:</h3>
       <p>${applicationData.specialMotivation}</p>
-      <p>Please find the CV and Cover Letter attached.</p>
+      <p>Please find the CV and Cover Letter attached. / يرجى الاطلاع على السيرة الذاتية وخطاب التقديم المرفقين.</p>
     `;
 
     console.log("Sending email via Resend API");
@@ -87,7 +87,7 @@ const handler = async (req: Request): Promise<Response> => {
       body: JSON.stringify({
         from: "Racine Jobs <onboarding@resend.dev>",
         to: [RECIPIENT_EMAIL],
-        subject: `New Job Application: ${applicationData.firstName} ${applicationData.lastName}`,
+        subject: `New Job Application: ${applicationData.firstName} ${applicationData.lastName} / طلب وظيفة جديد: ${applicationData.firstNameAr} ${applicationData.lastNameAr}`,
         html: emailContent,
       }),
     });
