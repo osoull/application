@@ -23,8 +23,7 @@ const ApplicationForm = () => {
     email: "",
     phone: "",
     linkedin: "",
-    coverLetter: "",
-    coverLetterAr: "",
+    coverLetter: null as File | null,
     resume: null as File | null,
     expectedSalary: "",
     currentSalary: "",
@@ -48,9 +47,10 @@ const ApplicationForm = () => {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
+      const { name } = e.target;
       setFormData((prev) => ({
         ...prev,
-        resume: e.target.files![0],
+        [name]: e.target.files![0],
       }));
     }
   };
@@ -76,8 +76,7 @@ const ApplicationForm = () => {
       email: "",
       phone: "",
       linkedin: "",
-      coverLetter: "",
-      coverLetterAr: "",
+      coverLetter: null,
       resume: null,
       expectedSalary: "",
       currentSalary: "",
@@ -307,26 +306,14 @@ const ApplicationForm = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="coverLetter">Cover Letter / خطاب التقديم</Label>
-            <Textarea
+            <Label htmlFor="coverLetter">Cover Letter / خطاب التقديم (PDF)</Label>
+            <Input
               id="coverLetter"
               name="coverLetter"
-              rows={5}
-              dir="ltr"
-              value={formData.coverLetter}
-              onChange={handleInputChange}
-              placeholder="Write your cover letter in English"
-              className="resize-none mb-2"
-            />
-            <Textarea
-              id="coverLetterAr"
-              name="coverLetterAr"
-              rows={5}
-              dir="rtl"
-              value={formData.coverLetterAr}
-              onChange={handleInputChange}
-              placeholder="اكتب خطاب التقديم بالعربية"
-              className="resize-none"
+              type="file"
+              accept=".pdf"
+              onChange={handleFileChange}
+              className="cursor-pointer"
             />
           </div>
 
