@@ -7,8 +7,8 @@ const RECIPIENT_EMAIL = "gm@racine.sa";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
 interface ApplicationData {
@@ -93,10 +93,18 @@ async function getFileFromStorage(supabase: any, path: string): Promise<Uint8Arr
 const handler = async (req: Request): Promise<Response> => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { 
+      headers: { ...corsHeaders }
+    });
   }
 
   try {
+    console.log("Received request to send application email");
+    
+    if (!RESEND_API_KEY) {
+      throw new Error("RESEND_API_KEY is not configured");
+    }
+
     const applicationData: ApplicationData = await req.json();
     console.log("Received application data:", applicationData);
 
@@ -162,6 +170,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (!res.ok) {
       const error = await res.text();
+      console.error("Error response from Resend:", error);
       throw new Error(`Failed to send email: ${error}`);
     }
 
