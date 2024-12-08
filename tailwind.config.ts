@@ -19,8 +19,8 @@ export default {
     },
     extend: {
       colors: {
-        linkedin: {
-          blue: "#0A66C2",
+        rasin: {
+          primary: "#2B227C",
           gray: "#F3F2EF",
           text: "#1A1F2C",
         },
