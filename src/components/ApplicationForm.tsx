@@ -1,15 +1,12 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { Card } from "@/components/ui/card";
-import { CalendarIcon } from "lucide-react";
-import { format } from "date-fns";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
+import PersonalInfoForm from "./forms/PersonalInfoForm";
+import EducationForm from "./forms/EducationForm";
+import ProfessionalInfoForm from "./forms/ProfessionalInfoForm";
+import DocumentsForm from "./forms/DocumentsForm";
+import { supabase } from "@/integrations/supabase/client";
 
 const ApplicationForm = () => {
   const { toast } = useToast();
@@ -23,6 +20,8 @@ const ApplicationForm = () => {
     email: "",
     phone: "",
     linkedin: "",
+    github: "",
+    portfolioUrl: "",
     coverLetter: null as File | null,
     resume: null as File | null,
     expectedSalary: "",
@@ -31,6 +30,10 @@ const ApplicationForm = () => {
     yearsOfExperience: "",
     currentCompany: "",
     currentPosition: "",
+    educationLevel: "",
+    university: "",
+    major: "",
+    graduationYear: "",
     specialMotivation: "",
   });
 
@@ -38,6 +41,13 @@ const ApplicationForm = () => {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSelectChange = (name: string, value: string) => {
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -58,34 +68,94 @@ const ApplicationForm = () => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Simulate form submission
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    try {
+      // Upload files to Supabase Storage
+      const coverLetterPath = `cover-letters/${Date.now()}-${formData.coverLetter?.name}`;
+      const resumePath = `resumes/${Date.now()}-${formData.resume?.name}`;
 
-    toast({
-      title: "Application Submitted! / تم إرسال الطلب!",
-      description: "We will contact you soon. / سنتواصل معك قريباً.",
-    });
+      if (formData.coverLetter && formData.resume) {
+        const [coverLetterUpload, resumeUpload] = await Promise.all([
+          supabase.storage.from('applications').upload(coverLetterPath, formData.coverLetter),
+          supabase.storage.from('applications').upload(resumePath, formData.resume)
+        ]);
 
-    setIsSubmitting(false);
-    setFormData({
-      firstName: "",
-      firstNameAr: "",
-      lastName: "",
-      lastNameAr: "",
-      email: "",
-      phone: "",
-      linkedin: "",
-      coverLetter: null,
-      resume: null,
-      expectedSalary: "",
-      currentSalary: "",
-      noticePeriod: "",
-      yearsOfExperience: "",
-      currentCompany: "",
-      currentPosition: "",
-      specialMotivation: "",
-    });
-    setDate(undefined);
+        if (coverLetterUpload.error || resumeUpload.error) {
+          throw new Error('Error uploading files');
+        }
+
+        // Insert job application into the database
+        const { error: insertError } = await supabase.from('jobs').insert({
+          first_name: formData.firstName,
+          first_name_ar: formData.firstNameAr,
+          last_name: formData.lastName,
+          last_name_ar: formData.lastNameAr,
+          email: formData.email,
+          phone: formData.phone,
+          linkedin: formData.linkedin,
+          github: formData.github,
+          portfolio_url: formData.portfolioUrl,
+          cover_letter_url: coverLetterPath,
+          resume_url: resumePath,
+          expected_salary: formData.expectedSalary,
+          current_salary: formData.currentSalary,
+          notice_period: formData.noticePeriod,
+          years_of_experience: formData.yearsOfExperience,
+          current_company: formData.currentCompany,
+          current_position: formData.currentPosition,
+          education_level: formData.educationLevel,
+          university: formData.university,
+          major: formData.major,
+          graduation_year: formData.graduationYear,
+          special_motivation: formData.specialMotivation,
+          availability_date: date,
+        });
+
+        if (insertError) {
+          throw insertError;
+        }
+
+        toast({
+          title: "Application Submitted! / تم إرسال الطلب!",
+          description: "We will contact you soon. / سنتواصل معك قريباً.",
+        });
+
+        // Reset form
+        setFormData({
+          firstName: "",
+          firstNameAr: "",
+          lastName: "",
+          lastNameAr: "",
+          email: "",
+          phone: "",
+          linkedin: "",
+          github: "",
+          portfolioUrl: "",
+          coverLetter: null,
+          resume: null,
+          expectedSalary: "",
+          currentSalary: "",
+          noticePeriod: "",
+          yearsOfExperience: "",
+          currentCompany: "",
+          currentPosition: "",
+          educationLevel: "",
+          university: "",
+          major: "",
+          graduationYear: "",
+          specialMotivation: "",
+        });
+        setDate(undefined);
+      }
+    } catch (error) {
+      console.error('Error submitting application:', error);
+      toast({
+        title: "Error / خطأ",
+        description: "An error occurred while submitting your application. Please try again. / حدث خطأ أثناء إرسال طلبك. يرجى المحاولة مرة أخرى.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -107,207 +177,34 @@ const ApplicationForm = () => {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="firstName">First Name / الاسم الأول <span className="text-red-500">*</span></Label>
-              <Input
-                id="firstName"
-                name="firstName"
-                required
-                dir="ltr"
-                value={formData.firstName}
-                onChange={handleInputChange}
-                placeholder="Enter your first name"
-              />
-              <Input
-                id="firstNameAr"
-                name="firstNameAr"
-                required
-                dir="rtl"
-                value={formData.firstNameAr}
-                onChange={handleInputChange}
-                placeholder="أدخل اسمك الأول"
-                className="mt-2"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="lastName">Last Name / اسم العائلة <span className="text-red-500">*</span></Label>
-              <Input
-                id="lastName"
-                name="lastName"
-                required
-                dir="ltr"
-                value={formData.lastName}
-                onChange={handleInputChange}
-                placeholder="Enter your last name"
-              />
-              <Input
-                id="lastNameAr"
-                name="lastNameAr"
-                required
-                dir="rtl"
-                value={formData.lastNameAr}
-                onChange={handleInputChange}
-                placeholder="أدخل اسم العائلة"
-                className="mt-2"
-              />
-            </div>
+        <form onSubmit={handleSubmit} className="space-y-8">
+          <div className="space-y-6">
+            <h2 className="text-xl font-semibold">Personal Information / المعلومات الشخصية</h2>
+            <PersonalInfoForm formData={formData} handleInputChange={handleInputChange} />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email / البريد الإلكتروني <span className="text-red-500">*</span></Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                required
-                value={formData.email}
-                onChange={handleInputChange}
-                placeholder="example@domain.com"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="phone">Phone / رقم الهاتف <span className="text-red-500">*</span></Label>
-              <Input
-                id="phone"
-                name="phone"
-                type="tel"
-                required
-                value={formData.phone}
-                onChange={handleInputChange}
-                placeholder="+966 XX XXX XXXX"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="currentCompany">Current Company / الشركة الحالية <span className="text-red-500">*</span></Label>
-              <Input
-                id="currentCompany"
-                name="currentCompany"
-                required
-                value={formData.currentCompany}
-                onChange={handleInputChange}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="currentPosition">Current Position / المنصب الحالي <span className="text-red-500">*</span></Label>
-              <Input
-                id="currentPosition"
-                name="currentPosition"
-                required
-                value={formData.currentPosition}
-                onChange={handleInputChange}
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="expectedSalary">Expected Salary (SAR) / الراتب المتوقع <span className="text-red-500">*</span></Label>
-              <Input
-                id="expectedSalary"
-                name="expectedSalary"
-                type="number"
-                required
-                value={formData.expectedSalary}
-                onChange={handleInputChange}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="currentSalary">Current Salary (SAR) / الراتب الحالي <span className="text-red-500">*</span></Label>
-              <Input
-                id="currentSalary"
-                name="currentSalary"
-                type="number"
-                required
-                value={formData.currentSalary}
-                onChange={handleInputChange}
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Availability Date / تاريخ الإتاحة <span className="text-red-500">*</span></Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !date && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {date ? format(date, "PPP") : "Select date / اختر التاريخ"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={date}
-                    onSelect={setDate}
-                    initialFocus
-                    required
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="noticePeriod">Notice Period / فترة الإشعار <span className="text-red-500">*</span></Label>
-              <Input
-                id="noticePeriod"
-                name="noticePeriod"
-                required
-                value={formData.noticePeriod}
-                onChange={handleInputChange}
-                placeholder="e.g., 2 months / مثال: شهرين"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="specialMotivation">Special Motivation for this Position / الدافع الخاص لهذا المنصب <span className="text-red-500">*</span></Label>
-            <Textarea
-              id="specialMotivation"
-              name="specialMotivation"
-              required
-              value={formData.specialMotivation}
-              onChange={handleInputChange}
-              placeholder="Please explain your special motivation for this position / يرجى توضيح دافعك الخاص لهذا المنصب"
-              className="resize-none"
-              rows={4}
+          <div className="space-y-6">
+            <h2 className="text-xl font-semibold">Education / التعليم</h2>
+            <EducationForm 
+              formData={formData} 
+              handleInputChange={handleInputChange}
+              handleSelectChange={handleSelectChange}
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="coverLetter">Cover Letter / خطاب التقديم (PDF) <span className="text-red-500">*</span></Label>
-            <Input
-              id="coverLetter"
-              name="coverLetter"
-              type="file"
-              accept=".pdf"
-              required
-              onChange={handleFileChange}
-              className="cursor-pointer"
+          <div className="space-y-6">
+            <h2 className="text-xl font-semibold">Professional Information / المعلومات المهنية</h2>
+            <ProfessionalInfoForm 
+              formData={formData} 
+              handleInputChange={handleInputChange}
+              date={date}
+              setDate={setDate}
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="resume">CV/Resume (PDF) / السيرة الذاتية <span className="text-red-500">*</span></Label>
-            <Input
-              id="resume"
-              name="resume"
-              type="file"
-              accept=".pdf"
-              required
-              onChange={handleFileChange}
-              className="cursor-pointer"
-            />
+          <div className="space-y-6">
+            <h2 className="text-xl font-semibold">Documents / المستندات</h2>
+            <DocumentsForm handleFileChange={handleFileChange} />
           </div>
 
           <Button
