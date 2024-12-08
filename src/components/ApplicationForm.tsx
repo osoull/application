@@ -110,7 +110,7 @@ const ApplicationForm = () => {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="firstName">First Name / الاسم الأول</Label>
+              <Label htmlFor="firstName">First Name / الاسم الأول <span className="text-red-500">*</span></Label>
               <Input
                 id="firstName"
                 name="firstName"
@@ -132,7 +132,7 @@ const ApplicationForm = () => {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="lastName">Last Name / اسم العائلة</Label>
+              <Label htmlFor="lastName">Last Name / اسم العائلة <span className="text-red-500">*</span></Label>
               <Input
                 id="lastName"
                 name="lastName"
@@ -157,7 +157,7 @@ const ApplicationForm = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email / البريد الإلكتروني</Label>
+              <Label htmlFor="email">Email / البريد الإلكتروني <span className="text-red-500">*</span></Label>
               <Input
                 id="email"
                 name="email"
@@ -169,7 +169,7 @@ const ApplicationForm = () => {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="phone">Phone / رقم الهاتف</Label>
+              <Label htmlFor="phone">Phone / رقم الهاتف <span className="text-red-500">*</span></Label>
               <Input
                 id="phone"
                 name="phone"
@@ -184,7 +184,7 @@ const ApplicationForm = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="currentCompany">Current Company / الشركة الحالية</Label>
+              <Label htmlFor="currentCompany">Current Company / الشركة الحالية <span className="text-red-500">*</span></Label>
               <Input
                 id="currentCompany"
                 name="currentCompany"
@@ -194,7 +194,7 @@ const ApplicationForm = () => {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="currentPosition">Current Position / المنصب الحالي</Label>
+              <Label htmlFor="currentPosition">Current Position / المنصب الحالي <span className="text-red-500">*</span></Label>
               <Input
                 id="currentPosition"
                 name="currentPosition"
@@ -207,7 +207,7 @@ const ApplicationForm = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="expectedSalary">Expected Salary (SAR) / الراتب المتوقع</Label>
+              <Label htmlFor="expectedSalary">Expected Salary (SAR) / الراتب المتوقع <span className="text-red-500">*</span></Label>
               <Input
                 id="expectedSalary"
                 name="expectedSalary"
@@ -218,7 +218,7 @@ const ApplicationForm = () => {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="currentSalary">Current Salary (SAR) / الراتب الحالي</Label>
+              <Label htmlFor="currentSalary">Current Salary (SAR) / الراتب الحالي <span className="text-red-500">*</span></Label>
               <Input
                 id="currentSalary"
                 name="currentSalary"
@@ -232,7 +232,7 @@ const ApplicationForm = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Availability Date / تاريخ الإتاحة</Label>
+              <Label>Availability Date / تاريخ الإتاحة <span className="text-red-500">*</span></Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -258,7 +258,7 @@ const ApplicationForm = () => {
               </Popover>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="noticePeriod">Notice Period / فترة الإشعار</Label>
+              <Label htmlFor="noticePeriod">Notice Period / فترة الإشعار <span className="text-red-500">*</span></Label>
               <Input
                 id="noticePeriod"
                 name="noticePeriod"
@@ -271,7 +271,7 @@ const ApplicationForm = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="specialMotivation">Special Motivation for this Position / الدافع الخاص لهذا المنصب</Label>
+            <Label htmlFor="specialMotivation">Special Motivation for this Position / الدافع الخاص لهذا المنصب <span className="text-red-500">*</span></Label>
             <Textarea
               id="specialMotivation"
               name="specialMotivation"
@@ -285,7 +285,7 @@ const ApplicationForm = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="coverLetter">Cover Letter / خطاب التقديم (PDF)</Label>
+            <Label htmlFor="coverLetter">Cover Letter / خطاب التقديم (PDF) <span className="text-red-500">*</span></Label>
             <Input
               id="coverLetter"
               name="coverLetter"
@@ -298,7 +298,7 @@ const ApplicationForm = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="resume">CV/Resume (PDF) / السيرة الذاتية</Label>
+            <Label htmlFor="resume">CV/Resume (PDF) / السيرة الذاتية <span className="text-red-500">*</span></Label>
             <Input
               id="resume"
               name="resume"
