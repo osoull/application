@@ -8,6 +8,7 @@ import ProfessionalInfoForm from "./forms/ProfessionalInfoForm";
 import DocumentsForm from "./forms/DocumentsForm";
 import { submitApplication } from "@/utils/formSubmission";
 import type { FormData } from "@/types/form";
+import { applicationSchema } from "@/schemas/applicationSchema";
 
 const initialFormData: FormData = {
   firstName: "",
@@ -38,6 +39,7 @@ const ApplicationForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [date, setDate] = useState<Date>();
   const [formData, setFormData] = useState<FormData>(initialFormData);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -47,6 +49,14 @@ const ApplicationForm = () => {
       ...prev,
       [name]: value,
     }));
+    // Clear error when field is modified
+    if (errors[name]) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
   };
 
   const handleSelectChange = (name: string, value: string) => {
@@ -54,6 +64,14 @@ const ApplicationForm = () => {
       ...prev,
       [name]: value,
     }));
+    // Clear error when field is modified
+    if (errors[name]) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -66,9 +84,43 @@ const ApplicationForm = () => {
     }
   };
 
+  const validateForm = () => {
+    try {
+      applicationSchema.parse(formData);
+      setErrors({});
+      return true;
+    } catch (error: any) {
+      const formattedErrors: Record<string, string> = {};
+      error.errors.forEach((err: any) => {
+        const field = err.path[0];
+        formattedErrors[field] = err.message;
+      });
+      setErrors(formattedErrors);
+      return false;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!validateForm()) {
+      toast({
+        title: "Validation Error / خطأ في التحقق",
+        description: "Please check the form for errors. / يرجى التحقق من النموذج للأخطاء.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!date) {
+      toast({
+        title: "Date Required / التاريخ مطلوب",
+        description: "Please select an availability date. / يرجى اختيار تاريخ الإتاحة.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     await submitApplication(
       formData,
       date,
@@ -114,7 +166,11 @@ const ApplicationForm = () => {
         <form onSubmit={handleSubmit} className="space-y-8">
           <div className="space-y-6">
             <h2 className="text-xl font-semibold">Personal Information / المعلومات الشخصية</h2>
-            <PersonalInfoForm formData={formData} handleInputChange={handleInputChange} />
+            <PersonalInfoForm 
+              formData={formData} 
+              handleInputChange={handleInputChange}
+              errors={errors}
+            />
           </div>
 
           <div className="space-y-6">
@@ -123,6 +179,7 @@ const ApplicationForm = () => {
               formData={formData} 
               handleInputChange={handleInputChange}
               handleSelectChange={handleSelectChange}
+              errors={errors}
             />
           </div>
 
@@ -133,6 +190,7 @@ const ApplicationForm = () => {
               handleInputChange={handleInputChange}
               date={date}
               setDate={setDate}
+              errors={errors}
             />
           </div>
 

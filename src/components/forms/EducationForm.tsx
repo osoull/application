@@ -6,9 +6,10 @@ interface EducationFormProps {
   formData: any;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   handleSelectChange: (name: string, value: string) => void;
+  errors: Record<string, string>;
 }
 
-const EducationForm = ({ formData, handleInputChange, handleSelectChange }: EducationFormProps) => {
+const EducationForm = ({ formData, handleInputChange, handleSelectChange, errors }: EducationFormProps) => {
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 50 }, (_, i) => currentYear - i);
 
@@ -22,7 +23,7 @@ const EducationForm = ({ formData, handleInputChange, handleSelectChange }: Educ
             value={formData.educationLevel}
             onValueChange={(value) => handleSelectChange("educationLevel", value)}
           >
-            <SelectTrigger>
+            <SelectTrigger className={errors.educationLevel ? "border-red-500" : ""}>
               <SelectValue placeholder="Select education level" />
             </SelectTrigger>
             <SelectContent>
@@ -32,6 +33,9 @@ const EducationForm = ({ formData, handleInputChange, handleSelectChange }: Educ
               <SelectItem value="phd">PhD / دكتوراه</SelectItem>
             </SelectContent>
           </Select>
+          {errors.educationLevel && (
+            <p className="text-sm text-red-500">{errors.educationLevel}</p>
+          )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="major">Major / التخصص <span className="text-red-500">*</span></Label>
@@ -42,7 +46,11 @@ const EducationForm = ({ formData, handleInputChange, handleSelectChange }: Educ
             value={formData.major}
             onChange={handleInputChange}
             placeholder="e.g., Computer Science"
+            className={errors.major ? "border-red-500" : ""}
           />
+          {errors.major && (
+            <p className="text-sm text-red-500">{errors.major}</p>
+          )}
         </div>
       </div>
 
@@ -56,7 +64,11 @@ const EducationForm = ({ formData, handleInputChange, handleSelectChange }: Educ
             value={formData.university}
             onChange={handleInputChange}
             placeholder="Enter university name"
+            className={errors.university ? "border-red-500" : ""}
           />
+          {errors.university && (
+            <p className="text-sm text-red-500">{errors.university}</p>
+          )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="graduationYear">Graduation Year / سنة التخرج <span className="text-red-500">*</span></Label>
@@ -65,7 +77,7 @@ const EducationForm = ({ formData, handleInputChange, handleSelectChange }: Educ
             value={formData.graduationYear?.toString()}
             onValueChange={(value) => handleSelectChange("graduationYear", value)}
           >
-            <SelectTrigger>
+            <SelectTrigger className={errors.graduationYear ? "border-red-500" : ""}>
               <SelectValue placeholder="Select graduation year" />
             </SelectTrigger>
             <SelectContent>
@@ -76,6 +88,9 @@ const EducationForm = ({ formData, handleInputChange, handleSelectChange }: Educ
               ))}
             </SelectContent>
           </Select>
+          {errors.graduationYear && (
+            <p className="text-sm text-red-500">{errors.graduationYear}</p>
+          )}
         </div>
       </div>
     </div>
