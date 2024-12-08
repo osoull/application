@@ -1,13 +1,18 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import type { FormData } from "@/types/form";
 
 interface PersonalInfoFormProps {
-  formData: any;
+  formData: FormData;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   errors: Record<string, string>;
 }
 
 const PersonalInfoForm = ({ formData, handleInputChange, errors }: PersonalInfoFormProps) => {
+  if (!formData) {
+    return null; // Or a loading state if needed
+  }
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
