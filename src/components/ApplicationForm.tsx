@@ -98,15 +98,12 @@ const ApplicationForm = () => {
           <h1 className="text-3xl font-bold tracking-tight text-rasin-primary">
             Application Form / نموذج التقديم
           </h1>
-          <div className="flex justify-center items-center space-x-2">
+          <div className="flex justify-center items-center">
             <img 
               src="https://haovnjkyayiqenjpvlfb.supabase.co/storage/v1/object/public/platform-assets/logo.svg" 
               alt="Rasin Investment Company" 
               className="h-12" 
             />
-            <h2 className="text-xl font-semibold text-rasin-text">
-              شركة رسين للاستثمار
-            </h2>
           </div>
           <p className="text-muted-foreground">
             Please complete your information to submit your application / يرجى إكمال معلوماتك لتقديم طلبك
