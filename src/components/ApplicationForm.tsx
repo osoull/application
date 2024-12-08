@@ -31,7 +31,7 @@ const ApplicationForm = () => {
     yearsOfExperience: "",
     currentCompany: "",
     currentPosition: "",
-    specialMotivation: "", // Nouveau champ
+    specialMotivation: "",
   });
 
   const handleInputChange = (
@@ -188,6 +188,7 @@ const ApplicationForm = () => {
               <Input
                 id="currentCompany"
                 name="currentCompany"
+                required
                 value={formData.currentCompany}
                 onChange={handleInputChange}
               />
@@ -197,6 +198,7 @@ const ApplicationForm = () => {
               <Input
                 id="currentPosition"
                 name="currentPosition"
+                required
                 value={formData.currentPosition}
                 onChange={handleInputChange}
               />
@@ -221,6 +223,7 @@ const ApplicationForm = () => {
                 id="currentSalary"
                 name="currentSalary"
                 type="number"
+                required
                 value={formData.currentSalary}
                 onChange={handleInputChange}
               />
@@ -249,6 +252,7 @@ const ApplicationForm = () => {
                     selected={date}
                     onSelect={setDate}
                     initialFocus
+                    required
                   />
                 </PopoverContent>
               </Popover>
@@ -258,6 +262,7 @@ const ApplicationForm = () => {
               <Input
                 id="noticePeriod"
                 name="noticePeriod"
+                required
                 value={formData.noticePeriod}
                 onChange={handleInputChange}
                 placeholder="e.g., 2 months / مثال: شهرين"
@@ -270,6 +275,7 @@ const ApplicationForm = () => {
             <Textarea
               id="specialMotivation"
               name="specialMotivation"
+              required
               value={formData.specialMotivation}
               onChange={handleInputChange}
               placeholder="Please explain your special motivation for this position / يرجى توضيح دافعك الخاص لهذا المنصب"
@@ -285,6 +291,7 @@ const ApplicationForm = () => {
               name="coverLetter"
               type="file"
               accept=".pdf"
+              required
               onChange={handleFileChange}
               className="cursor-pointer"
             />
@@ -297,6 +304,7 @@ const ApplicationForm = () => {
               name="resume"
               type="file"
               accept=".pdf"
+              required
               onChange={handleFileChange}
               className="cursor-pointer"
             />
