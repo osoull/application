@@ -99,7 +99,11 @@ const ApplicationForm = () => {
             Application Form / نموذج التقديم
           </h1>
           <div className="flex justify-center items-center space-x-2">
-            <img src="/rasin-logo.png" alt="Rasin Investment Company" className="h-12" />
+            <img 
+              src="https://haovnjkyayiqenjpvlfb.supabase.co/storage/v1/object/public/platform-assets/logo.svg" 
+              alt="Rasin Investment Company" 
+              className="h-12" 
+            />
             <h2 className="text-xl font-semibold text-rasin-text">
               شركة رسين للاستثمار
             </h2>
