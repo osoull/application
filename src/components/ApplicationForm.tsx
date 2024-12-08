@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
 import { Card } from "@/components/ui/card";
 import PersonalInfoForm from "./forms/PersonalInfoForm";
 import EducationForm from "./forms/EducationForm";
 import ProfessionalInfoForm from "./forms/ProfessionalInfoForm";
 import DocumentsForm from "./forms/DocumentsForm";
+import SuccessNotification from "./SuccessNotification";
 import { submitApplication } from "@/utils/formSubmission";
 import type { FormData } from "@/types/form";
 import { applicationSchema } from "@/schemas/applicationSchema";
@@ -35,8 +35,8 @@ const initialFormData: FormData = {
 };
 
 const ApplicationForm = () => {
-  const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
   const [date, setDate] = useState<Date>();
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -49,7 +49,6 @@ const ApplicationForm = () => {
       ...prev,
       [name]: value,
     }));
-    // Clear error when field is modified
     if (errors[name]) {
       setErrors((prev) => {
         const newErrors = { ...prev };
@@ -64,7 +63,6 @@ const ApplicationForm = () => {
       ...prev,
       [name]: value,
     }));
-    // Clear error when field is modified
     if (errors[name]) {
       setErrors((prev) => {
         const newErrors = { ...prev };
@@ -104,20 +102,12 @@ const ApplicationForm = () => {
     e.preventDefault();
     
     if (!validateForm()) {
-      toast({
-        title: "Validation Error / خطأ في التحقق",
-        description: "Please check the form for errors. / يرجى التحقق من النموذج للأخطاء.",
-        variant: "destructive",
-      });
+      console.error("Validation failed", errors);
       return;
     }
 
     if (!date) {
-      toast({
-        title: "Date Required / التاريخ مطلوب",
-        description: "Please select an availability date. / يرجى اختيار تاريخ الإتاحة.",
-        variant: "destructive",
-      });
+      console.error("Date is required");
       return;
     }
 
@@ -126,23 +116,19 @@ const ApplicationForm = () => {
       date,
       setIsSubmitting,
       () => {
-        toast({
-          title: "Application Submitted! / تم إرسال الطلب!",
-          description: "We will contact you soon. / سنتواصل معك قريباً.",
-        });
+        setIsSubmitted(true);
         setFormData(initialFormData);
         setDate(undefined);
       },
       (error) => {
         console.error('Error submitting application:', error);
-        toast({
-          title: "Error / خطأ",
-          description: "An error occurred while submitting your application. Please try again. / حدث خطأ أثناء إرسال طلبك. يرجى المحاولة مرة أخرى.",
-          variant: "destructive",
-        });
       }
     );
   };
+
+  if (isSubmitted) {
+    return <SuccessNotification firstName={formData.firstName} firstNameAr={formData.firstNameAr} />;
+  }
 
   return (
     <Card className="w-full max-w-4xl mx-auto p-6 bg-white shadow-lg">
