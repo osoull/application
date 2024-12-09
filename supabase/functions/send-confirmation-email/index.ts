@@ -43,14 +43,14 @@ serve(async (req) => {
     <div dir="ltr">
       <p>Dear ${formData.first_name} ${formData.last_name},</p>
 
-      <p>Thank you for submitting your application for the ${formData.current_position} position at Rasin Investment Company. We appreciate your interest in joining our team.</p>
+      <p>Thank you for submitting your application for the ${formData.current_position} position at Racine Investment Company. We appreciate your interest in joining our team.</p>
 
       <p>Our hiring team will carefully review your application and will contact you if your qualifications match our requirements.</p>
 
       <p>Please note that due to the high volume of applications we receive, we may not be able to respond to every application individually.</p>
 
       <p>Best regards,<br>
-      Rasin Investment Company HR Team</p>
+      Racine Investment Company HR Team</p>
     </div>
 
     <div class="divider"></div>
@@ -58,18 +58,18 @@ serve(async (req) => {
     <div dir="rtl">
       <p>عزيزي/عزيزتي ${formData.first_name_ar} ${formData.last_name_ar}،</p>
 
-      <p>نشكرك على تقديم طلبك لوظيفة ${formData.current_position} في شركة رسين للاستثمار. نقدر اهتمامك بالانضمام إلى فريقنا.</p>
+      <p>نشكرك على تقديم طلبك لوظيفة ${formData.current_position} في شركة راسين للاستثمار. نقدر اهتمامك بالانضمام إلى فريقنا.</p>
 
       <p>سيقوم فريق التوظيف لدينا بمراجعة طلبك بعناية وسيتواصل معك إذا كانت مؤهلاتك تتناسب مع متطلباتنا.</p>
 
       <p>يرجى ملاحظة أنه نظراً للعدد الكبير من الطلبات التي نتلقاها، قد لا نتمكن من الرد على كل طلب بشكل فردي.</p>
 
       <p>مع أطيب التحيات،<br>
-      فريق الموارد البشرية - شركة رسين للاستثمار</p>
+      فريق الموارد البشرية - شركة راسين للاستثمار</p>
     </div>
 
     <div class="logo">
-      <img src="https://pyofrbpibmwcvgmzvhhk.supabase.co/storage/v1/object/public/applications/logo.png" alt="Rasin Investment Company Logo">
+      <img src="https://pyofrbpibmwcvgmzvhhk.supabase.co/storage/v1/object/public/applications/logo.png" alt="Racine Investment Company Logo">
     </div>
   </div>
 </body>
@@ -88,7 +88,7 @@ serve(async (req) => {
         }],
         from: {
           email: Deno.env.get('FROM_EMAIL'),
-          name: "شركة رسين للاستثمار"
+          name: "شركة راسين للاستثمار"
         },
         subject: `Application Received - ${formData.current_position} / تم استلام طلبك - ${formData.current_position}`,
         content: [{

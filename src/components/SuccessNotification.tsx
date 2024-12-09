@@ -32,7 +32,7 @@ const SuccessNotification = ({ firstName, firstNameAr }: SuccessNotificationProp
         <div className="flex justify-center">
           <img 
             src="https://haovnjkyayiqenjpvlfb.supabase.co/storage/v1/object/public/platform-assets/logo.svg" 
-            alt="Company Logo" 
+            alt="Racine Investment Company Logo" 
             className="h-12" 
           />
         </div>
