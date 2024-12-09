@@ -60,75 +60,104 @@ export const submitApplication = async (
       throw new Error('Resume and cover letter are required');
     }
 
-    // Upload resume to resumes folder
-    console.log('Uploading resume...');
-    const resumeFileName = `resumes/${Date.now()}-${formData.resume.name}`;
-    const { data: resumeData, error: resumeError } = await supabase.storage
-      .from('applications')
-      .upload(resumeFileName, formData.resume);
+    // Start a transaction-like flow
+    let resumePath: string | undefined;
+    let coverLetterPath: string | undefined;
 
-    if (resumeError) {
-      console.error('Resume upload error:', resumeError);
-      throw resumeError;
+    try {
+      // Upload resume to resumes folder
+      console.log('Uploading resume...');
+      const resumeFileName = `resumes/${Date.now()}-${formData.resume.name}`;
+      const { data: resumeData, error: resumeError } = await supabase.storage
+        .from('applications')
+        .upload(resumeFileName, formData.resume);
+
+      if (resumeError) {
+        console.error('Resume upload error:', resumeError);
+        throw resumeError;
+      }
+
+      resumePath = resumeData?.path;
+      console.log('Resume uploaded successfully:', resumePath);
+
+      // Upload cover letter to cover-letters folder
+      console.log('Uploading cover letter...');
+      const coverLetterFileName = `cover-letters/${Date.now()}-${formData.coverLetter.name}`;
+      const { data: coverLetterData, error: coverLetterError } = await supabase.storage
+        .from('applications')
+        .upload(coverLetterFileName, formData.coverLetter);
+
+      if (coverLetterError) {
+        // If cover letter upload fails, delete the resume
+        if (resumePath) {
+          await supabase.storage
+            .from('applications')
+            .remove([resumePath]);
+        }
+        console.error('Cover letter upload error:', coverLetterError);
+        throw coverLetterError;
+      }
+
+      coverLetterPath = coverLetterData?.path;
+      console.log('Cover letter uploaded successfully:', coverLetterPath);
+
+      // Transform and insert data
+      const dbData = transformFormDataToDbFormat(formData, date, resumePath!, coverLetterPath!);
+      console.log('Inserting job application data...', dbData);
+      
+      const { error: insertError } = await supabase
+        .from('jobs')
+        .insert(dbData);
+
+      if (insertError) {
+        // If database insertion fails, delete both uploaded files
+        const filesToDelete = [resumePath, coverLetterPath].filter(Boolean) as string[];
+        if (filesToDelete.length > 0) {
+          await supabase.storage
+            .from('applications')
+            .remove(filesToDelete);
+        }
+        console.error('Database insertion error:', insertError);
+        throw insertError;
+      }
+
+      // Send email to HR with Edge Function
+      console.log('Invoking send-application-email function...');
+      const { error: emailError } = await supabase.functions.invoke('send-application-email', {
+        body: { formData: dbData }
+      });
+
+      if (emailError) {
+        // If email sending fails, we still keep the application but log the error
+        console.error('Error sending email to HR:', emailError);
+        // We don't throw here as the application is already saved
+      }
+
+      // Send confirmation email to candidate
+      console.log('Sending confirmation email to candidate...');
+      const { error: confirmationEmailError } = await supabase.functions.invoke('send-confirmation-email', {
+        body: { formData: dbData }
+      });
+
+      if (confirmationEmailError) {
+        // If confirmation email fails, we still keep the application but log the error
+        console.error('Error sending confirmation email:', confirmationEmailError);
+        // We don't throw here as the application is already saved
+      }
+
+      console.log('All operations completed successfully');
+      onSuccess();
+
+    } catch (error) {
+      // Clean up any uploaded files if an error occurred during the process
+      const filesToDelete = [resumePath, coverLetterPath].filter(Boolean) as string[];
+      if (filesToDelete.length > 0) {
+        await supabase.storage
+          .from('applications')
+          .remove(filesToDelete);
+      }
+      throw error;
     }
-
-    const resumePath = resumeData?.path;
-    console.log('Resume uploaded successfully:', resumePath);
-
-    // Upload cover letter to cover-letters folder
-    console.log('Uploading cover letter...');
-    const coverLetterFileName = `cover-letters/${Date.now()}-${formData.coverLetter.name}`;
-    const { data: coverLetterData, error: coverLetterError } = await supabase.storage
-      .from('applications')
-      .upload(coverLetterFileName, formData.coverLetter);
-
-    if (coverLetterError) {
-      console.error('Cover letter upload error:', coverLetterError);
-      throw coverLetterError;
-    }
-
-    const coverLetterPath = coverLetterData?.path;
-    console.log('Cover letter uploaded successfully:', coverLetterPath);
-
-    // Transform and insert data
-    const dbData = transformFormDataToDbFormat(formData, date, resumePath!, coverLetterPath!);
-    console.log('Inserting job application data...', dbData);
-    
-    const { error: insertError } = await supabase
-      .from('jobs')
-      .insert(dbData);
-
-    if (insertError) {
-      console.error('Database insertion error:', insertError);
-      throw insertError;
-    }
-
-    console.log('Job application data inserted successfully');
-
-    // Send email to HR with Edge Function
-    console.log('Invoking send-application-email function...');
-    const { error: emailError } = await supabase.functions.invoke('send-application-email', {
-      body: { formData: dbData }
-    });
-
-    if (emailError) {
-      console.error('Error sending email to HR:', emailError);
-      throw emailError;
-    }
-
-    // Send confirmation email to candidate
-    console.log('Sending confirmation email to candidate...');
-    const { error: confirmationEmailError } = await supabase.functions.invoke('send-confirmation-email', {
-      body: { formData: dbData }
-    });
-
-    if (confirmationEmailError) {
-      console.error('Error sending confirmation email:', confirmationEmailError);
-      throw confirmationEmailError;
-    }
-
-    console.log('All emails sent successfully');
-    onSuccess();
 
   } catch (error) {
     console.error('Form submission error:', error);
