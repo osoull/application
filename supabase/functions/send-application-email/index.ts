@@ -48,6 +48,12 @@ serve(async (req) => {
       throw new Error('TO_EMAIL is not set')
     }
 
+    const FROM_EMAIL = Deno.env.get('FROM_EMAIL')
+    if (!FROM_EMAIL) {
+      console.error('FROM_EMAIL is not set')
+      throw new Error('FROM_EMAIL is not set')
+    }
+
     const applicationData: ApplicationData = await req.json()
     console.log('Received application data:', applicationData)
 
@@ -82,6 +88,7 @@ serve(async (req) => {
     `
 
     console.log('Preparing to send email to:', TO_EMAIL)
+    console.log('Sending from:', FROM_EMAIL)
 
     const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
       method: 'POST',
@@ -93,7 +100,7 @@ serve(async (req) => {
         personalizations: [{
           to: [{ email: TO_EMAIL }]
         }],
-        from: { email: "noreply@yourdomain.com" }, // Remplacez par votre email vérifié SendGrid
+        from: { email: FROM_EMAIL },
         subject: `New Job Application from ${applicationData.firstName} ${applicationData.lastName}`,
         content: [{
           type: 'text/plain',
