@@ -17,7 +17,7 @@ const DocumentsForm = ({ handleFileChange }: DocumentsFormProps) => {
           accept=".pdf"
           required
           onChange={handleFileChange}
-          className="cursor-pointer"
+          className="cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100"
         />
       </div>
 
@@ -30,7 +30,7 @@ const DocumentsForm = ({ handleFileChange }: DocumentsFormProps) => {
           accept=".pdf"
           required
           onChange={handleFileChange}
-          className="cursor-pointer"
+          className="cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100"
         />
       </div>
     </div>
