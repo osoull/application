@@ -25,29 +25,55 @@ serve(async (req) => {
     console.log('Sending confirmation email for application:', formData);
 
     const emailContent = `
-Dear ${formData.first_name} ${formData.last_name},
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; }
+    .email-container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .divider { border-top: 1px solid #ccc; margin: 20px 0; }
+    .logo { text-align: center; margin-top: 30px; }
+    .logo img { max-width: 200px; height: auto; }
+    [dir="rtl"] { direction: rtl; text-align: right; }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <div dir="ltr">
+      <p>Dear ${formData.first_name} ${formData.last_name},</p>
 
-Thank you for submitting your application for the ${formData.current_position} position at Rasin Investment Company. We appreciate your interest in joining our team.
+      <p>Thank you for submitting your application for the ${formData.current_position} position at Rasin Investment Company. We appreciate your interest in joining our team.</p>
 
-Our hiring team will carefully review your application and will contact you if your qualifications match our requirements.
+      <p>Our hiring team will carefully review your application and will contact you if your qualifications match our requirements.</p>
 
-Please note that due to the high volume of applications we receive, we may not be able to respond to every application individually.
+      <p>Please note that due to the high volume of applications we receive, we may not be able to respond to every application individually.</p>
 
-Best regards,
-Rasin Investment Company HR Team
+      <p>Best regards,<br>
+      Rasin Investment Company HR Team</p>
+    </div>
 
----
+    <div class="divider"></div>
 
-عزيزي/عزيزتي ${formData.first_name_ar} ${formData.last_name_ar}،
+    <div dir="rtl">
+      <p>عزيزي/عزيزتي ${formData.first_name_ar} ${formData.last_name_ar}،</p>
 
-نشكرك على تقديم طلبك لوظيفة ${formData.current_position} في شركة رسين للاستثمار. نقدر اهتمامك بالانضمام إلى فريقنا.
+      <p>نشكرك على تقديم طلبك لوظيفة ${formData.current_position} في شركة رسين للاستثمار. نقدر اهتمامك بالانضمام إلى فريقنا.</p>
 
-سيقوم فريق التوظيف لدينا بمراجعة طلبك بعناية وسيتواصل معك إذا كانت مؤهلاتك تتناسب مع متطلباتنا.
+      <p>سيقوم فريق التوظيف لدينا بمراجعة طلبك بعناية وسيتواصل معك إذا كانت مؤهلاتك تتناسب مع متطلباتنا.</p>
 
-يرجى ملاحظة أنه نظراً للعدد الكبير من الطلبات التي نتلقاها، قد لا نتمكن من الرد على كل طلب بشكل فردي.
+      <p>يرجى ملاحظة أنه نظراً للعدد الكبير من الطلبات التي نتلقاها، قد لا نتمكن من الرد على كل طلب بشكل فردي.</p>
 
-مع أطيب التحيات،
-فريق الموارد البشرية - شركة رسين للاستثمار
+      <p>مع أطيب التحيات،<br>
+      فريق الموارد البشرية - شركة رسين للاستثمار</p>
+    </div>
+
+    <div class="logo">
+      <img src="https://pyofrbpibmwcvgmzvhhk.supabase.co/storage/v1/object/public/applications/logo.png" alt="Rasin Investment Company Logo">
+    </div>
+  </div>
+</body>
+</html>
     `;
 
     const response = await fetch("https://api.sendgrid.com/v3/mail/send", {
@@ -66,7 +92,7 @@ Rasin Investment Company HR Team
         },
         subject: `Application Received - ${formData.current_position} / تم استلام طلبك - ${formData.current_position}`,
         content: [{
-          type: 'text/plain',
+          type: 'text/html',
           value: emailContent
         }]
       })
