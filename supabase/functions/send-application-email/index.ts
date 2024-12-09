@@ -34,28 +34,6 @@ serve(async (req) => {
       throw new Error('Missing required environment variables');
     }
 
-    // Create Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
-    const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    // Download files
-    console.log('Downloading resume and cover letter...');
-    console.log('Resume URL:', applicationData.resume_url);
-    console.log('Cover Letter URL:', applicationData.cover_letter_url);
-    
-    const [resumeBuffer, coverLetterBuffer] = await Promise.all([
-      downloadFile(supabase, applicationData.resume_url),
-      downloadFile(supabase, applicationData.cover_letter_url)
-    ]);
-
-    console.log('Files downloaded successfully');
-
-    // Generate PDF summary
-    console.log('Generating PDF summary...');
-    const pdfBuffer = await generatePDF(applicationData);
-    console.log('PDF generated successfully');
-
     // Prepare email content
     const emailContent = `
 English Version:
@@ -67,7 +45,7 @@ We have received a new job application from ${applicationData.first_name} ${appl
 Contact Information:
 - Email: ${applicationData.email}
 - Phone: ${applicationData.phone}
-- LinkedIn: ${applicationData.linkedin}
+- LinkedIn: ${applicationData.linkedin || 'Not provided'}
 ${applicationData.portfolio_url ? `- Portfolio: ${applicationData.portfolio_url}` : ''}
 
 Professional Information:
@@ -98,7 +76,7 @@ Availability Date: ${new Date(applicationData.availability_date).toLocaleDateStr
 معلومات الاتصال:
 - البريد الإلكتروني: ${applicationData.email}
 - الهاتف: ${applicationData.phone}
-- لينكد إن: ${applicationData.linkedin}
+- لينكد إن: ${applicationData.linkedin || 'غير متوفر'}
 ${applicationData.portfolio_url ? `- الموقع الشخصي: ${applicationData.portfolio_url}` : ''}
 
 المعلومات المهنية:
@@ -122,8 +100,6 @@ ${applicationData.special_motivation}
 `;
 
     console.log('Preparing to send email...');
-    console.log('To:', TO_EMAIL);
-    console.log('From:', FROM_EMAIL);
 
     // Send email using SendGrid
     const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
@@ -144,27 +120,7 @@ ${applicationData.special_motivation}
         content: [{
           type: 'text/plain',
           value: emailContent
-        }],
-        attachments: [
-          {
-            content: pdfBuffer.toString('base64'),
-            filename: `${applicationData.first_name}_${applicationData.last_name}_Application_Summary.pdf`,
-            type: 'application/pdf',
-            disposition: 'attachment'
-          },
-          {
-            content: resumeBuffer.toString('base64'),
-            filename: `${applicationData.first_name}_${applicationData.last_name}_Resume.pdf`,
-            type: 'application/pdf',
-            disposition: 'attachment'
-          },
-          {
-            content: coverLetterBuffer.toString('base64'),
-            filename: `${applicationData.first_name}_${applicationData.last_name}_Cover_Letter.pdf`,
-            type: 'application/pdf',
-            disposition: 'attachment'
-          }
-        ]
+        }]
       })
     });
 
@@ -188,7 +144,7 @@ ${applicationData.special_motivation}
     return new Response(
       JSON.stringify({ 
         error: error.message,
-        details: error.stack
+        details: error instanceof Error ? error.stack : 'Unknown error'
       }),
       { 
         status: 500,
