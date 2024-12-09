@@ -19,6 +19,7 @@ const initialFormData: FormData = {
   yearsOfExperience: "",
   currentCompany: "",
   currentPosition: "",
+  positionAppliedFor: "",
   educationLevel: "",
   university: "",
   major: "",

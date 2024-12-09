@@ -19,6 +19,7 @@ export const applicationSchema = z.object({
   yearsOfExperience: z.string().min(1, "Years of experience is required / سنوات الخبرة مطلوبة"),
   currentCompany: z.string().min(1, "Current company is required / الشركة الحالية مطلوبة"),
   currentPosition: z.string().min(1, "Current position is required / المنصب الحالي مطلوب"),
+  positionAppliedFor: z.string().min(1, "Position applied for is required / المنصب المتقدم له مطلوب"),
   educationLevel: z.string().min(1, "Education level is required / المستوى التعليمي مطلوب"),
   university: z.string().nullable(),
   major: z.string().nullable(),

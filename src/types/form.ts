@@ -17,6 +17,7 @@ export type FormData = {
   yearsOfExperience: string;
   currentCompany: string;
   currentPosition: string;
+  positionAppliedFor: string;
   educationLevel: string;
   university: string;
   major: string;

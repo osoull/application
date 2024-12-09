@@ -148,6 +148,21 @@ const ProfessionalInfoForm = ({ formData, handleInputChange, date, setDate, erro
       </div>
 
       <div className="space-y-2">
+        <Label htmlFor="positionAppliedFor">Position Applied For / المنصب المتقدم له <span className="text-red-500">*</span></Label>
+        <Input
+          id="positionAppliedFor"
+          name="positionAppliedFor"
+          required
+          value={formData.positionAppliedFor}
+          onChange={handleInputChange}
+          className={errors.positionAppliedFor ? "border-red-500" : ""}
+        />
+        {errors.positionAppliedFor && (
+          <p className="text-sm text-red-500">{errors.positionAppliedFor}</p>
+        )}
+      </div>
+
+      <div className="space-y-2">
         <Label htmlFor="specialMotivation">Special Motivation for this Position / الدافع الخاص لهذا المنصب <span className="text-red-500">*</span></Label>
         <Textarea
           id="specialMotivation"
