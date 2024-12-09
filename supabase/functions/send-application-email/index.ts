@@ -16,8 +16,9 @@ serve(async (req) => {
   }
 
   try {
+    console.log('Starting email function execution');
     const requestData = await req.json();
-    console.log('Received request data:', requestData);
+    console.log('Received request data:', JSON.stringify(requestData, null, 2));
 
     if (!requestData || !requestData.formData) {
       console.error('Invalid request data structure');
@@ -27,6 +28,12 @@ serve(async (req) => {
     const applicationData = requestData.formData;
     console.log('Processing application for:', applicationData.first_name, applicationData.last_name);
 
+    // Validate required environment variables
+    if (!SENDGRID_API_KEY || !TO_EMAIL || !FROM_EMAIL) {
+      console.error('Missing required environment variables');
+      throw new Error('Missing required environment variables');
+    }
+
     // Create Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
     const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
@@ -34,14 +41,20 @@ serve(async (req) => {
 
     // Download files
     console.log('Downloading resume and cover letter...');
+    console.log('Resume URL:', applicationData.resume_url);
+    console.log('Cover Letter URL:', applicationData.cover_letter_url);
+    
     const [resumeBuffer, coverLetterBuffer] = await Promise.all([
       downloadFile(supabase, applicationData.resume_url),
       downloadFile(supabase, applicationData.cover_letter_url)
     ]);
 
+    console.log('Files downloaded successfully');
+
     // Generate PDF summary
     console.log('Generating PDF summary...');
     const pdfBuffer = await generatePDF(applicationData);
+    console.log('PDF generated successfully');
 
     // Prepare email content
     const emailContent = `
@@ -108,8 +121,11 @@ ${applicationData.special_motivation}
 تاريخ الإتاحة: ${new Date(applicationData.availability_date).toLocaleDateString('ar-SA')}
 `;
 
+    console.log('Preparing to send email...');
+    console.log('To:', TO_EMAIL);
+    console.log('From:', FROM_EMAIL);
+
     // Send email using SendGrid
-    console.log('Sending email...');
     const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
       method: 'POST',
       headers: {
@@ -154,21 +170,30 @@ ${applicationData.special_motivation}
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('SendGrid API error:', errorText);
+      console.error('SendGrid API error response:', errorText);
       throw new Error(`SendGrid API error: ${response.status} ${response.statusText}`);
     }
 
     console.log('Email sent successfully');
     return new Response(
       JSON.stringify({ message: 'Application submitted successfully' }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { 
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      }
     );
 
   } catch (error) {
-    console.error('Error processing application:', error);
+    console.error('Error in send-application-email function:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ 
+        error: error.message,
+        details: error.stack
+      }),
+      { 
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      }
     );
   }
 });
