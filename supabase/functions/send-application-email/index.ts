@@ -1,12 +1,13 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import "https://deno.land/x/xhr@0.1.0/mod.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const RECIPIENT_EMAIL = "gm@racine.sa";
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
 interface ApplicationData {
@@ -26,6 +27,7 @@ interface ApplicationData {
   yearsOfExperience: string;
   currentCompany: string;
   currentPosition: string;
+  positionAppliedFor: string;
   educationLevel: string;
   university: string;
   major: string;
@@ -63,6 +65,7 @@ const handler = async (req: Request): Promise<Response> => {
         <li>Email / البريد الإلكتروني: ${applicationData.email}</li>
         <li>Phone / رقم الهاتف: ${applicationData.phone}</li>
         <li>LinkedIn: ${applicationData.linkedin}</li>
+        <li>Position Applied For / المنصب المتقدم له: ${applicationData.positionAppliedFor}</li>
         <li>Current Position / المنصب الحالي: ${applicationData.currentPosition}</li>
         <li>Current Company / الشركة الحالية: ${applicationData.currentCompany}</li>
         <li>Years of Experience / سنوات الخبرة: ${applicationData.yearsOfExperience}</li>
@@ -81,15 +84,15 @@ const handler = async (req: Request): Promise<Response> => {
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${RESEND_API_KEY}`,
+        "Authorization": `Bearer ${RESEND_API_KEY}`,
+        "Content-Type": "application/json"
       },
       body: JSON.stringify({
         from: "Racine Jobs <onboarding@resend.dev>",
         to: [RECIPIENT_EMAIL],
         subject: `New Job Application: ${applicationData.firstName} ${applicationData.lastName} / طلب وظيفة جديد: ${applicationData.firstNameAr} ${applicationData.lastNameAr}`,
         html: emailContent,
-      }),
+      })
     });
 
     if (!res.ok) {
@@ -105,7 +108,7 @@ const handler = async (req: Request): Promise<Response> => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error in send-application-email function:", error);
     return new Response(
       JSON.stringify({ 
