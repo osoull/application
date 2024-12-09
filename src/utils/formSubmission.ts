@@ -88,18 +88,29 @@ export const submitApplication = async (
 
     console.log('Job application data inserted successfully');
 
-    // Send email with Edge Function
+    // Send email to HR with Edge Function
     console.log('Invoking send-application-email function...');
     const { error: emailError } = await supabase.functions.invoke('send-application-email', {
       body: { formData: dbData }
     });
 
     if (emailError) {
-      console.error('Error sending email:', emailError);
+      console.error('Error sending email to HR:', emailError);
       throw emailError;
     }
 
-    console.log('Email sent successfully');
+    // Send confirmation email to candidate
+    console.log('Sending confirmation email to candidate...');
+    const { error: confirmationEmailError } = await supabase.functions.invoke('send-confirmation-email', {
+      body: { formData: dbData }
+    });
+
+    if (confirmationEmailError) {
+      console.error('Error sending confirmation email:', confirmationEmailError);
+      throw confirmationEmailError;
+    }
+
+    console.log('All emails sent successfully');
     onSuccess();
   } catch (error) {
     console.error('Form submission error:', error);
