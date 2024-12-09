@@ -63,16 +63,51 @@ serve(async (req: Request): Promise<Response> => {
     ];
 
     const emailBody = `
-      New Job Application Received from ${applicationData.firstName} ${applicationData.lastName}
-
-      Please find attached:
+      New Job Application Received / تم استلام طلب وظيفة جديد
+      
+      English:
+      --------
+      We have received a new job application from ${applicationData.firstName} ${applicationData.lastName}.
+      
+      Application Details:
+      - Position Applied For: ${applicationData.positionAppliedFor}
+      - Years of Experience: ${applicationData.yearsOfExperience}
+      - Current Position: ${applicationData.currentPosition}
+      - Expected Salary: ${applicationData.expectedSalary}
+      - Notice Period: ${applicationData.noticePeriod}
+      - Availability Date: ${applicationData.availability_date}
+      
+      Contact Information:
+      - Email: ${applicationData.email}
+      - Phone: ${applicationData.phone}
+      - LinkedIn: ${applicationData.linkedin}
+      
+      Please find the following documents attached:
       1. Application Summary (PDF)
       2. CV/Resume
       3. Cover Letter
-
-      You can also access the documents directly via these links:
-      - Cover Letter: ${applicationData.coverLetterUrl}
-      - Resume: ${applicationData.resumeUrl}
+      
+      العربية:
+      --------
+      لقد تلقينا طلب توظيف جديد من ${applicationData.firstNameAr} ${applicationData.lastNameAr}
+      
+      تفاصيل الطلب:
+      - الوظيفة المتقدم لها: ${applicationData.positionAppliedFor}
+      - سنوات الخبرة: ${applicationData.yearsOfExperience}
+      - المنصب الحالي: ${applicationData.currentPosition}
+      - الراتب المتوقع: ${applicationData.expectedSalary}
+      - فترة الإشعار: ${applicationData.noticePeriod}
+      - تاريخ التوفر: ${applicationData.availability_date}
+      
+      معلومات الاتصال:
+      - البريد الإلكتروني: ${applicationData.email}
+      - الهاتف: ${applicationData.phone}
+      - لينكد إن: ${applicationData.linkedin}
+      
+      تجدون المستندات التالية مرفقة:
+      1. ملخص الطلب (PDF)
+      2. السيرة الذاتية
+      3. خطاب التغطية
     `;
 
     console.log('Sending email with attachments...');
@@ -87,7 +122,7 @@ serve(async (req: Request): Promise<Response> => {
           to: [{ email: TO_EMAIL }]
         }],
         from: { email: FROM_EMAIL },
-        subject: `New Job Application from ${applicationData.firstName} ${applicationData.lastName}`,
+        subject: `New Job Application from ${applicationData.firstName} ${applicationData.lastName} / طلب وظيفة جديد من ${applicationData.firstNameAr} ${applicationData.lastNameAr}`,
         content: [{
           type: 'text/plain',
           value: emailBody
