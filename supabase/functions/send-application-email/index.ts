@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { PDFDocument, rgb, StandardFonts } from 'https://cdn.skypack.dev/pdf-lib';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -27,9 +28,155 @@ interface ApplicationData {
   graduationYear: string;
   coverLetterUrl: string;
   resumeUrl: string;
+  specialMotivation: string;
 }
 
-serve(async (req) => {
+async function generatePDF(data: ApplicationData): Promise<Uint8Array> {
+  const pdfDoc = await PDFDocument.create();
+  const page = pdfDoc.addPage([595.276, 841.890]); // A4 size
+  const { height } = page.getSize();
+  
+  // Fonts
+  const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+  
+  let yOffset = height - 50; // Start from top
+  const leftMargin = 50;
+  const lineHeight = 25;
+  
+  // Colors
+  const primaryColor = rgb(0.17, 0.13, 0.49); // #2B227C
+  const textColor = rgb(0.10, 0.12, 0.17); // #1A1F2C
+  
+  // Header
+  page.drawText('Job Application Details', {
+    x: leftMargin,
+    y: yOffset,
+    size: 24,
+    font: boldFont,
+    color: primaryColor,
+  });
+  yOffset -= lineHeight * 2;
+
+  // Personal Information Section
+  page.drawText('Personal Information', {
+    x: leftMargin,
+    y: yOffset,
+    size: 16,
+    font: boldFont,
+    color: primaryColor,
+  });
+  yOffset -= lineHeight;
+
+  const addField = (label: string, value: string) => {
+    page.drawText(`${label}:`, {
+      x: leftMargin,
+      y: yOffset,
+      size: 12,
+      font: boldFont,
+      color: textColor,
+    });
+    page.drawText(value, {
+      x: leftMargin + 150,
+      y: yOffset,
+      size: 12,
+      font: font,
+      color: textColor,
+    });
+    yOffset -= lineHeight;
+  };
+
+  // Personal Information
+  addField('Name', `${data.firstName} ${data.lastName} (${data.firstNameAr} ${data.lastNameAr})`);
+  addField('Email', data.email);
+  addField('Phone', data.phone);
+  addField('LinkedIn', data.linkedin || 'Not provided');
+  addField('Portfolio', data.portfolioUrl || 'Not provided');
+  yOffset -= lineHeight;
+
+  // Professional Information
+  page.drawText('Professional Information', {
+    x: leftMargin,
+    y: yOffset,
+    size: 16,
+    font: boldFont,
+    color: primaryColor,
+  });
+  yOffset -= lineHeight;
+
+  addField('Position Applied For', data.positionAppliedFor);
+  addField('Current Position', data.currentPosition);
+  addField('Current Company', data.currentCompany);
+  addField('Years of Experience', data.yearsOfExperience);
+  addField('Expected Salary', data.expectedSalary);
+  addField('Current Salary', data.currentSalary);
+  addField('Notice Period', data.noticePeriod);
+  yOffset -= lineHeight;
+
+  // Education
+  page.drawText('Education', {
+    x: leftMargin,
+    y: yOffset,
+    size: 16,
+    font: boldFont,
+    color: primaryColor,
+  });
+  yOffset -= lineHeight;
+
+  addField('Education Level', data.educationLevel);
+  addField('University', data.university || 'Not provided');
+  addField('Major', data.major || 'Not provided');
+  addField('Graduation Year', data.graduationYear?.toString() || 'Not provided');
+  yOffset -= lineHeight;
+
+  // Special Motivation
+  page.drawText('Special Motivation', {
+    x: leftMargin,
+    y: yOffset,
+    size: 16,
+    font: boldFont,
+    color: primaryColor,
+  });
+  yOffset -= lineHeight;
+
+  // Split motivation text into multiple lines if needed
+  const words = data.specialMotivation.split(' ');
+  let currentLine = '';
+  const maxWidth = 400;
+
+  for (const word of words) {
+    const testLine = currentLine + word + ' ';
+    const width = font.widthOfTextAtSize(testLine, 12);
+    
+    if (width > maxWidth) {
+      page.drawText(currentLine, {
+        x: leftMargin,
+        y: yOffset,
+        size: 12,
+        font: font,
+        color: textColor,
+      });
+      yOffset -= lineHeight;
+      currentLine = word + ' ';
+    } else {
+      currentLine = testLine;
+    }
+  }
+  
+  if (currentLine) {
+    page.drawText(currentLine, {
+      x: leftMargin,
+      y: yOffset,
+      size: 12,
+      font: font,
+      color: textColor,
+    });
+  }
+
+  return await pdfDoc.save();
+}
+
+serve(async (req: Request): Promise<Response> => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
@@ -57,32 +204,17 @@ serve(async (req) => {
     const applicationData: ApplicationData = await req.json()
     console.log('Received application data:', applicationData)
 
+    // Generate PDF
+    console.log('Generating PDF...')
+    const pdfBytes = await generatePDF(applicationData);
+    const pdfBase64 = btoa(String.fromCharCode(...pdfBytes));
+
     const emailBody = `
       New Job Application Received
 
-      Candidate Information:
-      - Name: ${applicationData.firstName} ${applicationData.lastName} (${applicationData.firstNameAr} ${applicationData.lastNameAr})
-      - Email: ${applicationData.email}
-      - Phone: ${applicationData.phone}
-      - LinkedIn: ${applicationData.linkedin}
-      - Portfolio: ${applicationData.portfolioUrl || 'Not provided'}
-
-      Professional Information:
-      - Position Applied For: ${applicationData.positionAppliedFor}
-      - Current Position: ${applicationData.currentPosition}
-      - Current Company: ${applicationData.currentCompany}
-      - Years of Experience: ${applicationData.yearsOfExperience}
-      - Expected Salary: ${applicationData.expectedSalary}
-      - Current Salary: ${applicationData.currentSalary}
-      - Notice Period: ${applicationData.noticePeriod}
-
-      Education:
-      - Level: ${applicationData.educationLevel}
-      - University: ${applicationData.university || 'Not provided'}
-      - Major: ${applicationData.major || 'Not provided'}
-      - Graduation Year: ${applicationData.graduationYear || 'Not provided'}
-
-      Documents:
+      Please find the detailed application information in the attached PDF.
+      
+      Documents Links:
       - Cover Letter: ${applicationData.coverLetterUrl}
       - Resume: ${applicationData.resumeUrl}
     `
@@ -93,8 +225,8 @@ serve(async (req) => {
     const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${SENDGRID_API_KEY}`,
         'Content-Type': 'application/json',
+        Authorization: `Bearer ${SENDGRID_API_KEY}`,
       },
       body: JSON.stringify({
         personalizations: [{
@@ -105,6 +237,12 @@ serve(async (req) => {
         content: [{
           type: 'text/plain',
           value: emailBody
+        }],
+        attachments: [{
+          content: pdfBase64,
+          filename: `application_${applicationData.firstName}_${applicationData.lastName}.pdf`,
+          type: 'application/pdf',
+          disposition: 'attachment'
         }]
       })
     })
