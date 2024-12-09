@@ -1,6 +1,6 @@
-import { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 
-export async function downloadFile(supabase: SupabaseClient, path: string): Promise<Buffer> {
+export async function downloadFileAndConvertToBase64(supabase: any, path: string): Promise<string> {
   console.log('Downloading file from path:', path);
   
   try {
@@ -17,12 +17,13 @@ export async function downloadFile(supabase: SupabaseClient, path: string): Prom
       throw new Error('No data received from storage');
     }
 
-    // Convert the blob to a buffer
+    // Convert the blob to base64
     const arrayBuffer = await data.arrayBuffer();
-    console.log('File downloaded successfully');
-    return Buffer.from(arrayBuffer);
+    const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+    console.log('File downloaded and converted to base64 successfully');
+    return base64;
   } catch (error) {
-    console.error('Error in downloadFile:', error);
+    console.error('Error in downloadFileAndConvertToBase64:', error);
     throw error;
   }
 }

@@ -22,3 +22,10 @@ export interface ApplicationData {
   special_motivation: string;
   availability_date: string;
 }
+
+export interface EmailAttachment {
+  content: string;
+  filename: string;
+  type: string;
+  disposition: string;
+}

@@ -43,9 +43,9 @@ export const submitApplication = async (
       throw new Error('Resume and cover letter are required');
     }
 
-    // Upload resume
+    // Upload resume to resumes folder
     console.log('Uploading resume...');
-    const resumeFileName = `${Date.now()}-${formData.resume.name}`;
+    const resumeFileName = `resumes/${Date.now()}-${formData.resume.name}`;
     const { data: resumeData, error: resumeError } = await supabase.storage
       .from('applications')
       .upload(resumeFileName, formData.resume);
@@ -58,9 +58,9 @@ export const submitApplication = async (
     const resumePath = resumeData?.path;
     console.log('Resume uploaded successfully:', resumePath);
 
-    // Upload cover letter
+    // Upload cover letter to cover-letters folder
     console.log('Uploading cover letter...');
-    const coverLetterFileName = `${Date.now()}-${formData.coverLetter.name}`;
+    const coverLetterFileName = `cover-letters/${Date.now()}-${formData.coverLetter.name}`;
     const { data: coverLetterData, error: coverLetterError } = await supabase.storage
       .from('applications')
       .upload(coverLetterFileName, formData.coverLetter);

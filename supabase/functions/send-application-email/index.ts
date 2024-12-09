@@ -1,6 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
-import { ApplicationData } from "./types.ts";
+import { ApplicationData, EmailAttachment } from "./types.ts";
+import { generateEmailContent } from "./email-template.ts";
+import { downloadFileAndConvertToBase64 } from "./file-service.ts";
 
 const SENDGRID_API_KEY = Deno.env.get('SENDGRID_API_KEY') || '';
 const TO_EMAIL = Deno.env.get('TO_EMAIL') || '';
@@ -11,36 +13,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-async function downloadFileAndConvertToBase64(supabase: any, path: string): Promise<string> {
-  console.log('Downloading file from path:', path);
-  
-  try {
-    const { data, error } = await supabase.storage
-      .from('applications')
-      .download(path);
-
-    if (error) {
-      console.error('Error downloading file:', error);
-      throw error;
-    }
-
-    if (!data) {
-      throw new Error('No data received from storage');
-    }
-
-    // Convert the blob to base64
-    const arrayBuffer = await data.arrayBuffer();
-    const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
-    console.log('File downloaded and converted to base64 successfully');
-    return base64;
-  } catch (error) {
-    console.error('Error in downloadFileAndConvertToBase64:', error);
-    throw error;
-  }
-}
-
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -58,13 +31,11 @@ serve(async (req) => {
     const applicationData: ApplicationData = requestData.formData;
     console.log('Processing application for:', applicationData.first_name, applicationData.last_name);
 
-    // Validate required environment variables
     if (!SENDGRID_API_KEY || !TO_EMAIL || !FROM_EMAIL) {
       console.error('Missing required environment variables');
       throw new Error('Missing required environment variables');
     }
 
-    // Initialize Supabase client
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
@@ -77,76 +48,24 @@ serve(async (req) => {
     console.log('Downloading cover letter from:', applicationData.cover_letter_url);
     const coverLetterBase64 = await downloadFileAndConvertToBase64(supabase, applicationData.cover_letter_url);
 
-    // Prepare email content
-    const emailContent = `
-English Version:
------------------
-New Job Application Received
-
-We have received a new job application from ${applicationData.first_name} ${applicationData.last_name}.
-
-Contact Information:
-- Email: ${applicationData.email}
-- Phone: ${applicationData.phone}
-- LinkedIn: ${applicationData.linkedin}
-${applicationData.portfolio_url ? `- Portfolio: ${applicationData.portfolio_url}` : ''}
-
-Professional Information:
-- Current Position: ${applicationData.current_position}
-- Current Company: ${applicationData.current_company}
-- Years of Experience: ${applicationData.years_of_experience}
-- Notice Period: ${applicationData.notice_period}
-- Expected Salary: ${applicationData.expected_salary} SAR
-- Current Salary: ${applicationData.current_salary} SAR
-
-Education:
-- Level: ${applicationData.education_level}
-- University: ${applicationData.university || 'N/A'}
-- Major: ${applicationData.major || 'N/A'}
-- Graduation Year: ${applicationData.graduation_year || 'N/A'}
-
-Special Motivation:
-${applicationData.special_motivation}
-
-Availability Date: ${new Date(applicationData.availability_date).toLocaleDateString()}
-
-النسخة العربية:
------------------
-تم استلام طلب توظيف جديد
-
-لقد تلقينا طلب توظيف جديد من ${applicationData.first_name_ar} ${applicationData.last_name_ar}
-
-معلومات الاتصال:
-- البريد الإلكتروني: ${applicationData.email}
-- الهاتف: ${applicationData.phone}
-- لينكد إن: ${applicationData.linkedin}
-${applicationData.portfolio_url ? `- الموقع الشخصي: ${applicationData.portfolio_url}` : ''}
-
-المعلومات المهنية:
-- المنصب الحالي: ${applicationData.current_position}
-- الشركة الحالية: ${applicationData.current_company}
-- سنوات الخبرة: ${applicationData.years_of_experience}
-- فترة الإشعار: ${applicationData.notice_period}
-- الراتب المتوقع: ${applicationData.expected_salary} ريال سعودي
-- الراتب الحالي: ${applicationData.current_salary} ريال سعودي
-
-التعليم:
-- المستوى: ${applicationData.education_level}
-- الجامعة: ${applicationData.university || 'غير متوفر'}
-- التخصص: ${applicationData.major || 'غير متوفر'}
-- سنة التخرج: ${applicationData.graduation_year || 'غير متوفر'}
-
-الدافع الخاص:
-${applicationData.special_motivation}
-
-تاريخ الإتاحة: ${new Date(applicationData.availability_date).toLocaleDateString('ar-SA')}
-`;
-
-    console.log('Preparing to send email with attachments...');
-
     // Extract file names from URLs
     const resumeFileName = applicationData.resume_url.split('/').pop() || 'resume.pdf';
     const coverLetterFileName = applicationData.cover_letter_url.split('/').pop() || 'cover_letter.pdf';
+
+    const attachments: EmailAttachment[] = [
+      {
+        content: resumeBase64,
+        filename: resumeFileName,
+        type: 'application/pdf',
+        disposition: 'attachment'
+      },
+      {
+        content: coverLetterBase64,
+        filename: coverLetterFileName,
+        type: 'application/pdf',
+        disposition: 'attachment'
+      }
+    ];
 
     // Send email using SendGrid
     const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
@@ -166,22 +85,9 @@ ${applicationData.special_motivation}
         subject: `New Job Application from ${applicationData.first_name} ${applicationData.last_name} / طلب وظيفة جديد من ${applicationData.first_name_ar} ${applicationData.last_name_ar}`,
         content: [{
           type: 'text/plain',
-          value: emailContent
+          value: generateEmailContent(applicationData)
         }],
-        attachments: [
-          {
-            content: resumeBase64,
-            filename: resumeFileName,
-            type: 'application/pdf',
-            disposition: 'attachment'
-          },
-          {
-            content: coverLetterBase64,
-            filename: coverLetterFileName,
-            type: 'application/pdf',
-            disposition: 'attachment'
-          }
-        ]
+        attachments
       })
     });
 
@@ -195,7 +101,6 @@ ${applicationData.special_motivation}
     return new Response(
       JSON.stringify({ message: 'Application submitted successfully' }),
       { 
-        status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
     );
