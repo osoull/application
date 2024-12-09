@@ -1,121 +1,113 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { ApplicationData, EmailAttachment } from "./types.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
+import { corsHeaders } from "./cors.ts";
 import { generatePDF } from "./pdf-generator.ts";
 import { downloadFile } from "./file-service.ts";
+import { ApplicationData } from "./types.ts";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+const SENDGRID_API_KEY = Deno.env.get('SENDGRID_API_KEY') || '';
+const TO_EMAIL = Deno.env.get('TO_EMAIL') || '';
+const FROM_EMAIL = Deno.env.get('FROM_EMAIL') || '';
+const SUPABASE_URL = Deno.env.get('SUPABASE_URL') || '';
+const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') || '';
 
-serve(async (req: Request): Promise<Response> => {
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response('ok', { headers: corsHeaders });
   }
 
   try {
-    const SENDGRID_API_KEY = Deno.env.get('SENDGRID_API_KEY');
-    const TO_EMAIL = Deno.env.get('TO_EMAIL');
-    const FROM_EMAIL = Deno.env.get('FROM_EMAIL');
+    const { applicationData } = await req.json();
 
-    if (!SENDGRID_API_KEY || !TO_EMAIL || !FROM_EMAIL) {
-      throw new Error('Missing required environment variables');
-    }
-
-    const applicationData: ApplicationData = await req.json();
     console.log('Processing application for:', applicationData.firstName, applicationData.lastName);
+
+    // Download files
+    console.log('Downloading resume and cover letter...');
+    const [resumeBuffer, coverLetterBuffer] = await Promise.all([
+      downloadFile(supabase, applicationData.resumeUrl),
+      downloadFile(supabase, applicationData.coverLetterUrl)
+    ]);
 
     // Generate PDF summary
     console.log('Generating PDF summary...');
-    const pdfBytes = await generatePDF(applicationData);
-    const pdfBase64 = btoa(String.fromCharCode(...pdfBytes));
+    const pdfBuffer = await generatePDF(applicationData);
 
-    // Download CV and Cover Letter
-    console.log('Downloading CV and Cover Letter...');
-    const [cvBytes, coverLetterBytes] = await Promise.all([
-      downloadFile(applicationData.resumeUrl),
-      downloadFile(applicationData.coverLetterUrl)
-    ]);
+    // Prepare email content
+    const emailContent = `
+English Version:
+-----------------
+New Job Application Received
 
-    if (!cvBytes || !coverLetterBytes) {
-      throw new Error('Failed to download CV or Cover Letter');
-    }
+We have received a new job application from ${applicationData.firstName} ${applicationData.lastName}.
 
-    const attachments: EmailAttachment[] = [
-      {
-        content: pdfBase64,
-        filename: `application_${applicationData.firstName}_${applicationData.lastName}.pdf`,
-        type: 'application/pdf',
-        disposition: 'attachment'
-      },
-      {
-        content: btoa(String.fromCharCode(...cvBytes)),
-        filename: `cv_${applicationData.firstName}_${applicationData.lastName}.pdf`,
-        type: 'application/pdf',
-        disposition: 'attachment'
-      },
-      {
-        content: btoa(String.fromCharCode(...coverLetterBytes)),
-        filename: `cover_letter_${applicationData.firstName}_${applicationData.lastName}.pdf`,
-        type: 'application/pdf',
-        disposition: 'attachment'
-      }
-    ];
+Contact Information:
+- Email: ${applicationData.email}
+- Phone: ${applicationData.phone}
+- LinkedIn: ${applicationData.linkedin}
+${applicationData.portfolioUrl ? `- Portfolio: ${applicationData.portfolioUrl}` : ''}
 
-    const emailBody = `
-      New Job Application Received / تم استلام طلب وظيفة جديد
-      
-      English:
-      --------
-      We have received a new job application from ${applicationData.firstName} ${applicationData.lastName}.
-      
-      Application Details:
-      - Position Applied For: ${applicationData.positionAppliedFor}
-      - Years of Experience: ${applicationData.yearsOfExperience}
-      - Current Position: ${applicationData.currentPosition}
-      - Expected Salary: ${applicationData.expectedSalary}
-      - Notice Period: ${applicationData.noticePeriod}
-      - Availability Date: ${applicationData.availability_date}
-      
-      Contact Information:
-      - Email: ${applicationData.email}
-      - Phone: ${applicationData.phone}
-      - LinkedIn: ${applicationData.linkedin}
-      
-      Please find the following documents attached:
-      1. Application Summary (PDF)
-      2. CV/Resume
-      3. Cover Letter
-      
-      العربية:
-      --------
-      لقد تلقينا طلب توظيف جديد من ${applicationData.firstNameAr} ${applicationData.lastNameAr}
-      
-      تفاصيل الطلب:
-      - الوظيفة المتقدم لها: ${applicationData.positionAppliedFor}
-      - سنوات الخبرة: ${applicationData.yearsOfExperience}
-      - المنصب الحالي: ${applicationData.currentPosition}
-      - الراتب المتوقع: ${applicationData.expectedSalary}
-      - فترة الإشعار: ${applicationData.noticePeriod}
-      - تاريخ التوفر: ${applicationData.availability_date}
-      
-      معلومات الاتصال:
-      - البريد الإلكتروني: ${applicationData.email}
-      - الهاتف: ${applicationData.phone}
-      - لينكد إن: ${applicationData.linkedin}
-      
-      تجدون المستندات التالية مرفقة:
-      1. ملخص الطلب (PDF)
-      2. السيرة الذاتية
-      3. خطاب التغطية
-    `;
+Professional Information:
+- Current Position: ${applicationData.currentPosition}
+- Current Company: ${applicationData.currentCompany}
+- Years of Experience: ${applicationData.yearsOfExperience}
+- Notice Period: ${applicationData.noticePeriod}
+- Expected Salary: ${applicationData.expectedSalary} SAR
+- Current Salary: ${applicationData.currentSalary} SAR
+- Position Applied For: ${applicationData.positionAppliedFor}
 
-    console.log('Sending email with attachments...');
+Education:
+- Level: ${applicationData.educationLevel}
+- University: ${applicationData.university || 'N/A'}
+- Major: ${applicationData.major || 'N/A'}
+- Graduation Year: ${applicationData.graduationYear || 'N/A'}
+
+Special Motivation:
+${applicationData.specialMotivation}
+
+Availability Date: ${new Date(applicationData.availabilityDate).toLocaleDateString()}
+
+النسخة العربية:
+-----------------
+تم استلام طلب توظيف جديد
+
+لقد تلقينا طلب توظيف جديد من ${applicationData.firstNameAr} ${applicationData.lastNameAr}
+
+معلومات الاتصال:
+- البريد الإلكتروني: ${applicationData.email}
+- الهاتف: ${applicationData.phone}
+- لينكد إن: ${applicationData.linkedin}
+${applicationData.portfolioUrl ? `- الموقع الشخصي: ${applicationData.portfolioUrl}` : ''}
+
+المعلومات المهنية:
+- المنصب الحالي: ${applicationData.currentPosition}
+- الشركة الحالية: ${applicationData.currentCompany}
+- سنوات الخبرة: ${applicationData.yearsOfExperience}
+- فترة الإشعار: ${applicationData.noticePeriod}
+- الراتب المتوقع: ${applicationData.expectedSalary} ريال سعودي
+- الراتب الحالي: ${applicationData.currentSalary} ريال سعودي
+- المنصب المتقدم له: ${applicationData.positionAppliedFor}
+
+التعليم:
+- المستوى: ${applicationData.educationLevel}
+- الجامعة: ${applicationData.university || 'غير متوفر'}
+- التخصص: ${applicationData.major || 'غير متوفر'}
+- سنة التخرج: ${applicationData.graduationYear || 'غير متوفر'}
+
+الدافع الخاص:
+${applicationData.specialMotivation}
+
+تاريخ الإتاحة: ${new Date(applicationData.availabilityDate).toLocaleDateString('ar-SA')}
+`;
+
+    // Send email using SendGrid
+    console.log('Sending email...');
     const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
       method: 'POST',
       headers: {
+        'Authorization': `Bearer ${SENDGRID_API_KEY}`,
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${SENDGRID_API_KEY}`,
       },
       body: JSON.stringify({
         personalizations: [{
@@ -128,41 +120,46 @@ serve(async (req: Request): Promise<Response> => {
         subject: `New Job Application from ${applicationData.firstName} ${applicationData.lastName} / طلب وظيفة جديد من ${applicationData.firstNameAr} ${applicationData.lastNameAr}`,
         content: [{
           type: 'text/plain',
-          value: emailBody
+          value: emailContent
         }],
-        attachments
+        attachments: [
+          {
+            content: pdfBuffer.toString('base64'),
+            filename: `${applicationData.firstName}_${applicationData.lastName}_Application_Summary.pdf`,
+            type: 'application/pdf',
+            disposition: 'attachment'
+          },
+          {
+            content: resumeBuffer.toString('base64'),
+            filename: `${applicationData.firstName}_${applicationData.lastName}_Resume.pdf`,
+            type: 'application/pdf',
+            disposition: 'attachment'
+          },
+          {
+            content: coverLetterBuffer.toString('base64'),
+            filename: `${applicationData.firstName}_${applicationData.lastName}_Cover_Letter.pdf`,
+            type: 'application/pdf',
+            disposition: 'attachment'
+          }
+        ]
       })
     });
 
     if (!response.ok) {
-      const errorData = await response.text();
-      console.error('SendGrid API error:', errorData);
-      throw new Error(`SendGrid API error: ${response.status} - ${errorData}`);
+      throw new Error(`SendGrid API error: ${response.status} ${response.statusText}`);
     }
 
     console.log('Email sent successfully');
     return new Response(
-      JSON.stringify({ message: 'Email sent successfully' }),
-      { 
-        headers: { 
-          ...corsHeaders,
-          'Content-Type': 'application/json'
-        },
-        status: 200 
-      }
+      JSON.stringify({ message: 'Application submitted successfully' }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
-    console.error('Error in send-application-email function:', error);
+    console.error('Error processing application:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
-      { 
-        headers: { 
-          ...corsHeaders,
-          'Content-Type': 'application/json'
-        },
-        status: 500
-      }
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
