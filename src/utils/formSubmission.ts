@@ -40,11 +40,16 @@ export const submitApplication = async (
     setIsSubmitting(true);
 
     // Check for existing application with the same email
-    const { data: existingApplication } = await supabase
+    const { data: existingApplication, error: checkError } = await supabase
       .from('jobs')
       .select('id, email')
       .eq('email', formData.email)
-      .single();
+      .maybeSingle();
+
+    if (checkError) {
+      console.error('Error checking for existing application:', checkError);
+      throw new Error('Error checking for existing application');
+    }
 
     if (existingApplication) {
       throw new Error('Une candidature avec cet email existe déjà / An application with this email already exists');
