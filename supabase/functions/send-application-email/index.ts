@@ -45,7 +45,7 @@ We have received a new job application from ${applicationData.first_name} ${appl
 Contact Information:
 - Email: ${applicationData.email}
 - Phone: ${applicationData.phone}
-- LinkedIn: ${applicationData.linkedin || 'Not provided'}
+- LinkedIn: ${applicationData.linkedin}
 ${applicationData.portfolio_url ? `- Portfolio: ${applicationData.portfolio_url}` : ''}
 
 Professional Information:
@@ -76,7 +76,7 @@ Availability Date: ${new Date(applicationData.availability_date).toLocaleDateStr
 معلومات الاتصال:
 - البريد الإلكتروني: ${applicationData.email}
 - الهاتف: ${applicationData.phone}
-- لينكد إن: ${applicationData.linkedin || 'غير متوفر'}
+- لينكد إن: ${applicationData.linkedin}
 ${applicationData.portfolio_url ? `- الموقع الشخصي: ${applicationData.portfolio_url}` : ''}
 
 المعلومات المهنية:
