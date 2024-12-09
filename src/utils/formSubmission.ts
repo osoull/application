@@ -58,18 +58,14 @@ export const submitApplication = async (
         throw insertError;
       }
 
-      // Send email with SendGrid
+      // Send email with Edge Function
       const { error: emailError } = await supabase.functions.invoke('send-application-email', {
-        body: {
-          ...formData,
-          coverLetterUrl: coverLetterPath,
-          resumeUrl: resumePath,
-        },
+        body: { formData: jobData }
       });
 
       if (emailError) {
         console.error('Error sending email:', emailError);
-        // Continue with success callback even if email fails
+        throw emailError;
       }
 
       onSuccess();

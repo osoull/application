@@ -8,20 +8,29 @@ import { ApplicationData } from "./types.ts";
 const SENDGRID_API_KEY = Deno.env.get('SENDGRID_API_KEY') || '';
 const TO_EMAIL = Deno.env.get('TO_EMAIL') || '';
 const FROM_EMAIL = Deno.env.get('FROM_EMAIL') || '';
-const SUPABASE_URL = Deno.env.get('SUPABASE_URL') || '';
-const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') || '';
-
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { applicationData } = await req.json();
+    const requestData = await req.json();
+    console.log('Received request data:', requestData);
 
+    if (!requestData || !requestData.formData) {
+      console.error('Invalid request data structure');
+      throw new Error('Invalid request data structure');
+    }
+
+    const applicationData: ApplicationData = requestData.formData;
     console.log('Processing application for:', applicationData.firstName, applicationData.lastName);
+
+    // Create Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+    const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Download files
     console.log('Downloading resume and cover letter...');
@@ -55,7 +64,6 @@ Professional Information:
 - Notice Period: ${applicationData.noticePeriod}
 - Expected Salary: ${applicationData.expectedSalary} SAR
 - Current Salary: ${applicationData.currentSalary} SAR
-- Position Applied For: ${applicationData.positionAppliedFor}
 
 Education:
 - Level: ${applicationData.educationLevel}
@@ -87,7 +95,6 @@ ${applicationData.portfolioUrl ? `- الموقع الشخصي: ${applicationData
 - فترة الإشعار: ${applicationData.noticePeriod}
 - الراتب المتوقع: ${applicationData.expectedSalary} ريال سعودي
 - الراتب الحالي: ${applicationData.currentSalary} ريال سعودي
-- المنصب المتقدم له: ${applicationData.positionAppliedFor}
 
 التعليم:
 - المستوى: ${applicationData.educationLevel}
@@ -146,6 +153,8 @@ ${applicationData.specialMotivation}
     });
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error('SendGrid API error:', errorText);
       throw new Error(`SendGrid API error: ${response.status} ${response.statusText}`);
     }
 
