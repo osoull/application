@@ -1,13 +1,43 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
-import { corsHeaders } from "./cors.ts";
-import { generatePDF } from "./pdf-generator.ts";
-import { downloadFile } from "./file-service.ts";
 import { ApplicationData } from "./types.ts";
 
 const SENDGRID_API_KEY = Deno.env.get('SENDGRID_API_KEY') || '';
 const TO_EMAIL = Deno.env.get('TO_EMAIL') || '';
 const FROM_EMAIL = Deno.env.get('FROM_EMAIL') || '';
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+async function downloadFileAndConvertToBase64(supabase: any, path: string): Promise<string> {
+  console.log('Downloading file from path:', path);
+  
+  try {
+    const { data, error } = await supabase.storage
+      .from('applications')
+      .download(path);
+
+    if (error) {
+      console.error('Error downloading file:', error);
+      throw error;
+    }
+
+    if (!data) {
+      throw new Error('No data received from storage');
+    }
+
+    // Convert the blob to base64
+    const arrayBuffer = await data.arrayBuffer();
+    const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+    console.log('File downloaded and converted to base64 successfully');
+    return base64;
+  } catch (error) {
+    console.error('Error in downloadFileAndConvertToBase64:', error);
+    throw error;
+  }
+}
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -25,7 +55,7 @@ serve(async (req) => {
       throw new Error('Invalid request data structure');
     }
 
-    const applicationData = requestData.formData;
+    const applicationData: ApplicationData = requestData.formData;
     console.log('Processing application for:', applicationData.first_name, applicationData.last_name);
 
     // Validate required environment variables
@@ -33,6 +63,19 @@ serve(async (req) => {
       console.error('Missing required environment variables');
       throw new Error('Missing required environment variables');
     }
+
+    // Initialize Supabase client
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
+    // Download and convert files to base64
+    console.log('Downloading resume from:', applicationData.resume_url);
+    const resumeBase64 = await downloadFileAndConvertToBase64(supabase, applicationData.resume_url);
+    
+    console.log('Downloading cover letter from:', applicationData.cover_letter_url);
+    const coverLetterBase64 = await downloadFileAndConvertToBase64(supabase, applicationData.cover_letter_url);
 
     // Prepare email content
     const emailContent = `
@@ -99,7 +142,11 @@ ${applicationData.special_motivation}
 تاريخ الإتاحة: ${new Date(applicationData.availability_date).toLocaleDateString('ar-SA')}
 `;
 
-    console.log('Preparing to send email...');
+    console.log('Preparing to send email with attachments...');
+
+    // Extract file names from URLs
+    const resumeFileName = applicationData.resume_url.split('/').pop() || 'resume.pdf';
+    const coverLetterFileName = applicationData.cover_letter_url.split('/').pop() || 'cover_letter.pdf';
 
     // Send email using SendGrid
     const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
@@ -120,7 +167,21 @@ ${applicationData.special_motivation}
         content: [{
           type: 'text/plain',
           value: emailContent
-        }]
+        }],
+        attachments: [
+          {
+            content: resumeBase64,
+            filename: resumeFileName,
+            type: 'application/pdf',
+            disposition: 'attachment'
+          },
+          {
+            content: coverLetterBase64,
+            filename: coverLetterFileName,
+            type: 'application/pdf',
+            disposition: 'attachment'
+          }
+        ]
       })
     });
 
@@ -130,7 +191,7 @@ ${applicationData.special_motivation}
       throw new Error(`SendGrid API error: ${response.status} ${response.statusText}`);
     }
 
-    console.log('Email sent successfully');
+    console.log('Email sent successfully with attachments');
     return new Response(
       JSON.stringify({ message: 'Application submitted successfully' }),
       { 
