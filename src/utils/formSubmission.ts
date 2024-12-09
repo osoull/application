@@ -38,6 +38,17 @@ export const submitApplication = async (
   try {
     console.log('Starting form submission process...');
     setIsSubmitting(true);
+
+    // Check for existing application with the same email
+    const { data: existingApplication } = await supabase
+      .from('jobs')
+      .select('id, email')
+      .eq('email', formData.email)
+      .single();
+
+    if (existingApplication) {
+      throw new Error('Une candidature avec cet email existe déjà / An application with this email already exists');
+    }
     
     if (!formData.resume || !formData.coverLetter) {
       throw new Error('Resume and cover letter are required');
@@ -112,6 +123,7 @@ export const submitApplication = async (
 
     console.log('All emails sent successfully');
     onSuccess();
+
   } catch (error) {
     console.error('Form submission error:', error);
     onError(error instanceof Error ? error.message : 'An unexpected error occurred');
