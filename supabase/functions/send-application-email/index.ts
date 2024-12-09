@@ -80,7 +80,7 @@ serve(async (req) => {
         }],
         from: { 
           email: FROM_EMAIL,
-          name: "شركة راسين للاستثمار"
+          name: "شركة رسين للاستثمار"
         },
         subject: `New Job Application from ${applicationData.first_name} ${applicationData.last_name} / طلب وظيفة جديد من ${applicationData.first_name_ar} ${applicationData.last_name_ar}`,
         content: [{

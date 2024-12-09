@@ -133,7 +133,7 @@ serve(async (req) => {
         }],
         from: {
           email: Deno.env.get('FROM_EMAIL'),
-          name: "شركة راسين للاستثمار"
+          name: "شركة رسين للاستثمار"
         },
         subject: `Application Received - ${formData.position_applied_for} / تم استلام طلبك - ${formData.position_applied_for}`,
         content: [{
