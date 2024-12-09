@@ -12,7 +12,7 @@ interface ApplicationData {
   last_name: string;
   last_name_ar: string;
   email: string;
-  current_position: string;
+  position_applied_for: string;
 }
 
 serve(async (req) => {
@@ -48,7 +48,7 @@ serve(async (req) => {
     <div dir="ltr">
       <p>Dear ${formData.first_name} ${formData.last_name},</p>
 
-      <p>Thank you for submitting your application for the ${formData.current_position} position at Racine Investment Company. We appreciate your interest in joining our team.</p>
+      <p>Thank you for submitting your application for the ${formData.position_applied_for} position at Racine Investment Company. We appreciate your interest in joining our team.</p>
 
       <p>Our hiring team will carefully review your application and will contact you if your qualifications match our requirements.</p>
 
@@ -69,7 +69,7 @@ serve(async (req) => {
     <div dir="rtl">
       <p>عزيزي/عزيزتي ${formData.first_name_ar} ${formData.last_name_ar}،</p>
 
-      <p>نشكرك على تقديم طلبك لوظيفة ${formData.current_position} في شركة راسين للاستثمار. نقدر اهتمامك بالانضمام إلى فريقنا.</p>
+      <p>نشكرك على تقديم طلبك لوظيفة ${formData.position_applied_for} في شركة راسين للاستثمار. نقدر اهتمامك بالانضمام إلى فريقنا.</p>
 
       <p>سيقوم فريق التوظيف لدينا بمراجعة طلبك بعناية وسيتواصل معك إذا كانت مؤهلاتك تتناسب مع متطلباتنا.</p>
 
@@ -103,7 +103,7 @@ serve(async (req) => {
           email: Deno.env.get('FROM_EMAIL'),
           name: "شركة راسين للاستثمار"
         },
-        subject: `Application Received - ${formData.current_position} / تم استلام طلبك - ${formData.current_position}`,
+        subject: `Application Received - ${formData.position_applied_for} / تم استلام طلبك - ${formData.position_applied_for}`,
         content: [{
           type: 'text/html',
           value: emailContent
