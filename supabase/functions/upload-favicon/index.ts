@@ -23,7 +23,7 @@ serve(async (req) => {
 
     const { data, error: uploadError } = await supabase.storage
       .from('applications')
-      .upload('favicon.png', file, {
+      .upload('logo.png', file, {
         contentType: 'image/png',
         upsert: true
       })
@@ -31,13 +31,13 @@ serve(async (req) => {
     if (uploadError) {
       console.error('Upload error:', uploadError)
       return new Response(
-        JSON.stringify({ error: 'Failed to upload favicon', details: uploadError }),
+        JSON.stringify({ error: 'Failed to upload logo', details: uploadError }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
       )
     }
 
     return new Response(
-      JSON.stringify({ message: 'Favicon uploaded successfully', data }),
+      JSON.stringify({ message: 'Logo uploaded successfully', data }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     )
   } catch (error) {

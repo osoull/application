@@ -36,6 +36,11 @@ serve(async (req) => {
     .logo { text-align: center; margin-top: 30px; }
     .logo img { max-width: 200px; height: auto; }
     [dir="rtl"] { direction: rtl; text-align: right; }
+    [dir="ltr"] { direction: ltr; text-align: left; }
+    .signature { margin-top: 20px; }
+    .signature-logo { display: inline-block; vertical-align: middle; margin: 0 10px; }
+    .signature-logo img { height: 40px; width: auto; }
+    .signature-text { display: inline-block; vertical-align: middle; }
   </style>
 </head>
 <body>
@@ -49,8 +54,14 @@ serve(async (req) => {
 
       <p>Please note that due to the high volume of applications we receive, we may not be able to respond to every application individually.</p>
 
-      <p>Best regards,<br>
-      Racine Investment Company HR Team</p>
+      <div class="signature">
+        <p>Best regards,<br>
+        <span class="signature-text">Racine Investment Company HR Team</span>
+        <span class="signature-logo">
+          <img src="https://pyofrbpibmwcvgmzvhhk.supabase.co/storage/v1/object/public/applications/logo.png" alt="Racine Investment Company Logo">
+        </span>
+        </p>
+      </div>
     </div>
 
     <div class="divider"></div>
@@ -64,12 +75,14 @@ serve(async (req) => {
 
       <p>يرجى ملاحظة أنه نظراً للعدد الكبير من الطلبات التي نتلقاها، قد لا نتمكن من الرد على كل طلب بشكل فردي.</p>
 
-      <p>مع أطيب التحيات،<br>
-      فريق الموارد البشرية - شركة راسين للاستثمار</p>
-    </div>
-
-    <div class="logo">
-      <img src="https://pyofrbpibmwcvgmzvhhk.supabase.co/storage/v1/object/public/applications/logo.png" alt="Racine Investment Company Logo">
+      <div class="signature">
+        <p>مع أطيب التحيات،<br>
+        <span class="signature-logo">
+          <img src="https://pyofrbpibmwcvgmzvhhk.supabase.co/storage/v1/object/public/applications/logo.png" alt="Racine Investment Company Logo">
+        </span>
+        <span class="signature-text">فريق الموارد البشرية - شركة راسين للاستثمار</span>
+        </p>
+      </div>
     </div>
   </div>
 </body>
