@@ -58,6 +58,20 @@ export const submitApplication = async (
         throw insertError;
       }
 
+      // Send email with SendGrid
+      const { error: emailError } = await supabase.functions.invoke('send-application-email', {
+        body: {
+          ...formData,
+          coverLetterUrl: coverLetterPath,
+          resumeUrl: resumePath,
+        },
+      });
+
+      if (emailError) {
+        console.error('Error sending email:', emailError);
+        // Continue with success callback even if email fails
+      }
+
       onSuccess();
     }
   } catch (error) {
