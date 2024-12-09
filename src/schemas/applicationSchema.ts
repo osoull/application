@@ -7,8 +7,8 @@ export const applicationSchema = z.object({
   lastNameAr: z.string().min(1, "Arabic last name is required / اسم العائلة بالعربية مطلوب"),
   email: z.string().email("Invalid email format / تنسيق البريد الإلكتروني غير صالح"),
   phone: z.string().regex(/^\+?[0-9\s-()]{8,}$/, "Invalid phone number format / تنسيق رقم الهاتف غير صالح"),
-  linkedin: z.string().url("Invalid LinkedIn URL / رابط LinkedIn غير صالح").nullable(),
-  portfolioUrl: z.string().url("Invalid portfolio URL / رابط المحفظة غير صالح").nullable(),
+  linkedin: z.string().url("Invalid LinkedIn URL / رابط LinkedIn غير صالح"),
+  portfolioUrl: z.string().url("Invalid portfolio URL / رابط المحفظة غير صالح").optional().nullable(),
   expectedSalary: z.string().refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
     message: "Expected salary must be a positive number / يجب أن يكون الراتب المتوقع رقمًا موجبًا"
   }),
