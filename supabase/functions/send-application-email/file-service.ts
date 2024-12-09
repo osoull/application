@@ -1,4 +1,4 @@
-import { SupabaseClient } from "@supabase/supabase-js";
+import { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 
 export async function downloadFile(supabase: SupabaseClient, path: string): Promise<string> {
   const { data, error } = await supabase.storage
