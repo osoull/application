@@ -19,6 +19,7 @@ const transformFormDataToDbFormat = (formData: FormData, date: Date, resumeUrl: 
     years_of_experience: formData.yearsOfExperience,
     current_company: formData.currentCompany,
     current_position: formData.currentPosition,
+    position_applied_for: formData.positionAppliedFor,
     education_level: formData.educationLevel,
     university: formData.university || null,
     major: formData.major || null,

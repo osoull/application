@@ -71,6 +71,7 @@ serve(async (req) => {
     .signature-logo img { 
       height: 40px;
       width: auto;
+      margin-top: 10px;
     }
   </style>
 </head>
