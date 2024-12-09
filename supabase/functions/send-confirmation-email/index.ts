@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -30,17 +29,52 @@ serve(async (req) => {
 <head>
   <meta charset="utf-8">
   <style>
-    body { font-family: Arial, sans-serif; line-height: 1.6; }
-    .email-container { max-width: 600px; margin: 0 auto; padding: 20px; }
-    .divider { border-top: 1px solid #ccc; margin: 20px 0; }
-    .logo { text-align: center; margin-top: 30px; }
-    .logo img { max-width: 200px; height: auto; }
-    [dir="rtl"] { direction: rtl; text-align: right; }
-    [dir="ltr"] { direction: ltr; text-align: left; }
-    .signature { margin-top: 20px; }
-    .signature-logo { display: inline-block; vertical-align: middle; margin: 0 10px; }
-    .signature-logo img { height: 40px; width: auto; }
-    .signature-text { display: inline-block; vertical-align: middle; }
+    body { 
+      font-family: Arial, sans-serif; 
+      line-height: 1.6; 
+      margin: 0;
+      padding: 0;
+    }
+    .email-container { 
+      max-width: 600px; 
+      margin: 0 auto; 
+      padding: 20px; 
+    }
+    .divider { 
+      border-top: 1px solid #ccc; 
+      margin: 20px 0; 
+    }
+    [dir="rtl"] { 
+      direction: rtl; 
+      text-align: right; 
+    }
+    [dir="ltr"] { 
+      direction: ltr; 
+      text-align: left; 
+    }
+    .signature { 
+      margin-top: 20px;
+      padding: 20px 0;
+    }
+    .signature-content {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    [dir="rtl"] .signature-content {
+      flex-direction: row-reverse;
+    }
+    .signature-text { 
+      display: inline-block;
+    }
+    .signature-logo { 
+      display: inline-block;
+    }
+    .signature-logo img { 
+      height: 40px;
+      width: auto;
+      vertical-align: middle;
+    }
   </style>
 </head>
 <body>
@@ -55,12 +89,12 @@ serve(async (req) => {
       <p>Please note that due to the high volume of applications we receive, we may not be able to respond to every application individually.</p>
 
       <div class="signature">
-        <p>Best regards,<br>
-        <span class="signature-text">Racine Investment Company HR Team</span>
-        <span class="signature-logo">
-          <img src="https://pyofrbpibmwcvgmzvhhk.supabase.co/storage/v1/object/public/applications/logo.png" alt="Racine Investment Company Logo">
-        </span>
-        </p>
+        <div class="signature-content">
+          <div class="signature-text">Best regards,<br>Racine Investment Company HR Team</div>
+          <div class="signature-logo">
+            <img src="https://haovnjkyayiqenjpvlfb.supabase.co/storage/v1/object/public/platform-assets/logo.svg" alt="Racine Investment Company Logo">
+          </div>
+        </div>
       </div>
     </div>
 
@@ -76,12 +110,12 @@ serve(async (req) => {
       <p>يرجى ملاحظة أنه نظراً للعدد الكبير من الطلبات التي نتلقاها، قد لا نتمكن من الرد على كل طلب بشكل فردي.</p>
 
       <div class="signature">
-        <p>مع أطيب التحيات،<br>
-        <span class="signature-logo">
-          <img src="https://pyofrbpibmwcvgmzvhhk.supabase.co/storage/v1/object/public/applications/logo.png" alt="Racine Investment Company Logo">
-        </span>
-        <span class="signature-text">فريق الموارد البشرية - شركة راسين للاستثمار</span>
-        </p>
+        <div class="signature-content">
+          <div class="signature-text">مع أطيب التحيات،<br>فريق الموارد البشرية - شركة راسين للاستثمار</div>
+          <div class="signature-logo">
+            <img src="https://haovnjkyayiqenjpvlfb.supabase.co/storage/v1/object/public/platform-assets/logo.svg" alt="Racine Investment Company Logo">
+          </div>
+        </div>
       </div>
     </div>
   </div>
