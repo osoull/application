@@ -38,11 +38,13 @@ serve(async (req) => {
   try {
     const SENDGRID_API_KEY = Deno.env.get('SENDGRID_API_KEY')
     if (!SENDGRID_API_KEY) {
+      console.error('SENDGRID_API_KEY is not set')
       throw new Error('SENDGRID_API_KEY is not set')
     }
 
     const TO_EMAIL = Deno.env.get('TO_EMAIL')
     if (!TO_EMAIL) {
+      console.error('TO_EMAIL is not set')
       throw new Error('TO_EMAIL is not set')
     }
 
@@ -57,7 +59,7 @@ serve(async (req) => {
       - Email: ${applicationData.email}
       - Phone: ${applicationData.phone}
       - LinkedIn: ${applicationData.linkedin}
-      - Portfolio: ${applicationData.portfolioUrl}
+      - Portfolio: ${applicationData.portfolioUrl || 'Not provided'}
 
       Professional Information:
       - Position Applied For: ${applicationData.positionAppliedFor}
@@ -70,14 +72,16 @@ serve(async (req) => {
 
       Education:
       - Level: ${applicationData.educationLevel}
-      - University: ${applicationData.university}
-      - Major: ${applicationData.major}
-      - Graduation Year: ${applicationData.graduationYear}
+      - University: ${applicationData.university || 'Not provided'}
+      - Major: ${applicationData.major || 'Not provided'}
+      - Graduation Year: ${applicationData.graduationYear || 'Not provided'}
 
       Documents:
       - Cover Letter: ${applicationData.coverLetterUrl}
       - Resume: ${applicationData.resumeUrl}
     `
+
+    console.log('Preparing to send email to:', TO_EMAIL)
 
     const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
       method: 'POST',
@@ -89,7 +93,7 @@ serve(async (req) => {
         personalizations: [{
           to: [{ email: TO_EMAIL }]
         }],
-        from: { email: 'noreply@yourdomain.com' },
+        from: { email: "noreply@yourdomain.com" }, // Remplacez par votre email vérifié SendGrid
         subject: `New Job Application from ${applicationData.firstName} ${applicationData.lastName}`,
         content: [{
           type: 'text/plain',
@@ -98,26 +102,34 @@ serve(async (req) => {
       })
     })
 
+    console.log('SendGrid API response status:', response.status)
+    
     if (!response.ok) {
       const errorData = await response.text()
       console.error('SendGrid API error:', errorData)
-      throw new Error(`SendGrid API error: ${response.status}`)
+      throw new Error(`SendGrid API error: ${response.status} - ${errorData}`)
     }
 
     return new Response(
       JSON.stringify({ message: 'Email sent successfully' }),
       { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { 
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        },
         status: 200 
       }
     )
 
   } catch (error) {
-    console.error('Error:', error)
+    console.error('Error in send-application-email function:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
       { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { 
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        },
         status: 500
       }
     )
