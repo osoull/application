@@ -121,7 +121,10 @@ serve(async (req: Request): Promise<Response> => {
         personalizations: [{
           to: [{ email: TO_EMAIL }]
         }],
-        from: { email: FROM_EMAIL },
+        from: { 
+          email: FROM_EMAIL,
+          name: "شركة رسين للاستثمار"
+        },
         subject: `New Job Application from ${applicationData.firstName} ${applicationData.lastName} / طلب وظيفة جديد من ${applicationData.firstNameAr} ${applicationData.lastNameAr}`,
         content: [{
           type: 'text/plain',
