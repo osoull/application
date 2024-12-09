@@ -58,22 +58,19 @@ serve(async (req) => {
     }
     .signature-content {
       display: flex;
-      align-items: center;
+      flex-direction: column;
+      align-items: flex-start;
       gap: 10px;
     }
     [dir="rtl"] .signature-content {
-      flex-direction: row-reverse;
+      align-items: flex-end;
     }
     .signature-text { 
-      display: inline-block;
-    }
-    .signature-logo { 
-      display: inline-block;
+      margin-bottom: 10px;
     }
     .signature-logo img { 
       height: 40px;
       width: auto;
-      vertical-align: middle;
     }
   </style>
 </head>
