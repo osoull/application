@@ -62,6 +62,7 @@ const ApplicationForm = () => {
           yearsOfExperience: "",
           currentCompany: "",
           currentPosition: "",
+          positionAppliedFor: "", // Ajout du nouveau champ
           educationLevel: "",
           university: "",
           major: "",
