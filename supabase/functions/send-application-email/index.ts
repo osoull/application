@@ -24,8 +24,8 @@ serve(async (req) => {
       throw new Error('Invalid request data structure');
     }
 
-    const applicationData: ApplicationData = requestData.formData;
-    console.log('Processing application for:', applicationData.firstName, applicationData.lastName);
+    const applicationData = requestData.formData;
+    console.log('Processing application for:', applicationData.first_name, applicationData.last_name);
 
     // Create Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
@@ -35,8 +35,8 @@ serve(async (req) => {
     // Download files
     console.log('Downloading resume and cover letter...');
     const [resumeBuffer, coverLetterBuffer] = await Promise.all([
-      downloadFile(supabase, applicationData.resumeUrl),
-      downloadFile(supabase, applicationData.coverLetterUrl)
+      downloadFile(supabase, applicationData.resume_url),
+      downloadFile(supabase, applicationData.cover_letter_url)
     ]);
 
     // Generate PDF summary
@@ -49,63 +49,63 @@ English Version:
 -----------------
 New Job Application Received
 
-We have received a new job application from ${applicationData.firstName} ${applicationData.lastName}.
+We have received a new job application from ${applicationData.first_name} ${applicationData.last_name}.
 
 Contact Information:
 - Email: ${applicationData.email}
 - Phone: ${applicationData.phone}
 - LinkedIn: ${applicationData.linkedin}
-${applicationData.portfolioUrl ? `- Portfolio: ${applicationData.portfolioUrl}` : ''}
+${applicationData.portfolio_url ? `- Portfolio: ${applicationData.portfolio_url}` : ''}
 
 Professional Information:
-- Current Position: ${applicationData.currentPosition}
-- Current Company: ${applicationData.currentCompany}
-- Years of Experience: ${applicationData.yearsOfExperience}
-- Notice Period: ${applicationData.noticePeriod}
-- Expected Salary: ${applicationData.expectedSalary} SAR
-- Current Salary: ${applicationData.currentSalary} SAR
+- Current Position: ${applicationData.current_position}
+- Current Company: ${applicationData.current_company}
+- Years of Experience: ${applicationData.years_of_experience}
+- Notice Period: ${applicationData.notice_period}
+- Expected Salary: ${applicationData.expected_salary} SAR
+- Current Salary: ${applicationData.current_salary} SAR
 
 Education:
-- Level: ${applicationData.educationLevel}
+- Level: ${applicationData.education_level}
 - University: ${applicationData.university || 'N/A'}
 - Major: ${applicationData.major || 'N/A'}
-- Graduation Year: ${applicationData.graduationYear || 'N/A'}
+- Graduation Year: ${applicationData.graduation_year || 'N/A'}
 
 Special Motivation:
-${applicationData.specialMotivation}
+${applicationData.special_motivation}
 
-Availability Date: ${new Date(applicationData.availabilityDate).toLocaleDateString()}
+Availability Date: ${new Date(applicationData.availability_date).toLocaleDateString()}
 
 النسخة العربية:
 -----------------
 تم استلام طلب توظيف جديد
 
-لقد تلقينا طلب توظيف جديد من ${applicationData.firstNameAr} ${applicationData.lastNameAr}
+لقد تلقينا طلب توظيف جديد من ${applicationData.first_name_ar} ${applicationData.last_name_ar}
 
 معلومات الاتصال:
 - البريد الإلكتروني: ${applicationData.email}
 - الهاتف: ${applicationData.phone}
 - لينكد إن: ${applicationData.linkedin}
-${applicationData.portfolioUrl ? `- الموقع الشخصي: ${applicationData.portfolioUrl}` : ''}
+${applicationData.portfolio_url ? `- الموقع الشخصي: ${applicationData.portfolio_url}` : ''}
 
 المعلومات المهنية:
-- المنصب الحالي: ${applicationData.currentPosition}
-- الشركة الحالية: ${applicationData.currentCompany}
-- سنوات الخبرة: ${applicationData.yearsOfExperience}
-- فترة الإشعار: ${applicationData.noticePeriod}
-- الراتب المتوقع: ${applicationData.expectedSalary} ريال سعودي
-- الراتب الحالي: ${applicationData.currentSalary} ريال سعودي
+- المنصب الحالي: ${applicationData.current_position}
+- الشركة الحالية: ${applicationData.current_company}
+- سنوات الخبرة: ${applicationData.years_of_experience}
+- فترة الإشعار: ${applicationData.notice_period}
+- الراتب المتوقع: ${applicationData.expected_salary} ريال سعودي
+- الراتب الحالي: ${applicationData.current_salary} ريال سعودي
 
 التعليم:
-- المستوى: ${applicationData.educationLevel}
+- المستوى: ${applicationData.education_level}
 - الجامعة: ${applicationData.university || 'غير متوفر'}
 - التخصص: ${applicationData.major || 'غير متوفر'}
-- سنة التخرج: ${applicationData.graduationYear || 'غير متوفر'}
+- سنة التخرج: ${applicationData.graduation_year || 'غير متوفر'}
 
 الدافع الخاص:
-${applicationData.specialMotivation}
+${applicationData.special_motivation}
 
-تاريخ الإتاحة: ${new Date(applicationData.availabilityDate).toLocaleDateString('ar-SA')}
+تاريخ الإتاحة: ${new Date(applicationData.availability_date).toLocaleDateString('ar-SA')}
 `;
 
     // Send email using SendGrid
@@ -124,7 +124,7 @@ ${applicationData.specialMotivation}
           email: FROM_EMAIL,
           name: "شركة رسين للاستثمار"
         },
-        subject: `New Job Application from ${applicationData.firstName} ${applicationData.lastName} / طلب وظيفة جديد من ${applicationData.firstNameAr} ${applicationData.lastNameAr}`,
+        subject: `New Job Application from ${applicationData.first_name} ${applicationData.last_name} / طلب وظيفة جديد من ${applicationData.first_name_ar} ${applicationData.last_name_ar}`,
         content: [{
           type: 'text/plain',
           value: emailContent
@@ -132,19 +132,19 @@ ${applicationData.specialMotivation}
         attachments: [
           {
             content: pdfBuffer.toString('base64'),
-            filename: `${applicationData.firstName}_${applicationData.lastName}_Application_Summary.pdf`,
+            filename: `${applicationData.first_name}_${applicationData.last_name}_Application_Summary.pdf`,
             type: 'application/pdf',
             disposition: 'attachment'
           },
           {
             content: resumeBuffer.toString('base64'),
-            filename: `${applicationData.firstName}_${applicationData.lastName}_Resume.pdf`,
+            filename: `${applicationData.first_name}_${applicationData.last_name}_Resume.pdf`,
             type: 'application/pdf',
             disposition: 'attachment'
           },
           {
             content: coverLetterBuffer.toString('base64'),
-            filename: `${applicationData.firstName}_${applicationData.lastName}_Cover_Letter.pdf`,
+            filename: `${applicationData.first_name}_${applicationData.last_name}_Cover_Letter.pdf`,
             type: 'application/pdf',
             disposition: 'attachment'
           }
