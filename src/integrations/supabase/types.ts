@@ -33,6 +33,7 @@ export type Database = {
           notice_period: string
           phone: string
           portfolio_url: string | null
+          position_applied_for: string
           resume_url: string | null
           skills: string[] | null
           special_motivation: string
@@ -62,6 +63,7 @@ export type Database = {
           notice_period: string
           phone: string
           portfolio_url?: string | null
+          position_applied_for: string
           resume_url?: string | null
           skills?: string[] | null
           special_motivation: string
@@ -91,6 +93,7 @@ export type Database = {
           notice_period?: string
           phone?: string
           portfolio_url?: string | null
+          position_applied_for?: string
           resume_url?: string | null
           skills?: string[] | null
           special_motivation?: string
