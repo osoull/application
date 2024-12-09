@@ -1,14 +1,43 @@
 import { supabase } from "@/integrations/supabase/client";
 import { FormData } from "@/types/form";
 
-export const handleFormSubmission = async (
+const transformFormDataToDbFormat = (formData: FormData, date: Date, resumeUrl: string, coverLetterUrl: string) => {
+  return {
+    first_name: formData.firstName,
+    first_name_ar: formData.firstNameAr,
+    last_name: formData.lastName,
+    last_name_ar: formData.lastNameAr,
+    email: formData.email,
+    phone: formData.phone,
+    linkedin: formData.linkedin,
+    portfolio_url: formData.portfolioUrl,
+    resume_url: resumeUrl,
+    cover_letter_url: coverLetterUrl,
+    expected_salary: Number(formData.expectedSalary),
+    current_salary: Number(formData.currentSalary),
+    notice_period: formData.noticePeriod,
+    years_of_experience: formData.yearsOfExperience,
+    current_company: formData.currentCompany,
+    current_position: formData.currentPosition,
+    education_level: formData.educationLevel,
+    university: formData.university || null,
+    major: formData.major || null,
+    graduation_year: formData.graduationYear ? Number(formData.graduationYear) : null,
+    special_motivation: formData.specialMotivation,
+    availability_date: date.toISOString(),
+  };
+};
+
+export const submitApplication = async (
   formData: FormData,
-  date: Date | undefined,
+  date: Date,
+  setIsSubmitting: (value: boolean) => void,
   onSuccess: () => void,
   onError: (error: string) => void
 ) => {
   try {
     console.log('Starting form submission process...');
+    setIsSubmitting(true);
     
     if (!formData.resume || !formData.coverLetter) {
       throw new Error('Resume and cover letter are required');
@@ -44,18 +73,13 @@ export const handleFormSubmission = async (
     const coverLetterPath = coverLetterData?.path;
     console.log('Cover letter uploaded successfully:', coverLetterPath);
 
-    // Prepare job data
-    const jobData = {
-      ...formData,
-      resume_url: resumePath,
-      cover_letter_url: coverLetterPath,
-      availability_date: date?.toISOString(),
-    };
-
-    console.log('Inserting job application data...');
+    // Transform and insert data
+    const dbData = transformFormDataToDbFormat(formData, date, resumePath!, coverLetterPath!);
+    console.log('Inserting job application data...', dbData);
+    
     const { error: insertError } = await supabase
       .from('jobs')
-      .insert(jobData);
+      .insert(dbData);
 
     if (insertError) {
       console.error('Database insertion error:', insertError);
@@ -67,7 +91,7 @@ export const handleFormSubmission = async (
     // Send email with Edge Function
     console.log('Invoking send-application-email function...');
     const { error: emailError } = await supabase.functions.invoke('send-application-email', {
-      body: { formData: jobData }
+      body: { formData: dbData }
     });
 
     if (emailError) {
@@ -80,5 +104,7 @@ export const handleFormSubmission = async (
   } catch (error) {
     console.error('Form submission error:', error);
     onError(error instanceof Error ? error.message : 'An unexpected error occurred');
+  } finally {
+    setIsSubmitting(false);
   }
 };
